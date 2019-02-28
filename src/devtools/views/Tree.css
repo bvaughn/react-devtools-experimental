@@ -14,15 +14,36 @@
   padding: 0.5rem;
 }
 
+.FullSize {
+  display: flex;
+  flex: 1 0 auto;
+  padding: 0.25rem;
+}
+
+.OverflowHider {
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
 .AutoSizerWrapper {
   width: 100%;
   overflow: auto;
-  flex: 1 0 auto;
-  padding: 0.25rem;
 }
 
 .List {
   font-family: var(--font-family-monospace);
   font-size: var(--font-size-monospace-normal);
   line-height: var(--line-height-data);
+}
+
+.SelectedElementBackground {
+  background-color: var(--color-tree-node-selected);
+  border-radius: 0.25em;
+  height: var(--line-height-data);
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: calc(var(--top) * 1px);
 }

@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useLayoutEffect,
   useRef,
+  useState,
 } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { FixedSizeList } from 'react-window';
@@ -35,6 +36,9 @@ export default function Tree(props: Props) {
 
   const { lineHeight } = useContext(SettingsContext);
 
+  const selectedElementBackgroundRef = useRef();
+  const [scroll, setScroll] = useState({ scrollOffset: 0 });
+
   // Make sure a newly selected element is visible in the list.
   // This is helpful for things like the owners list.
   useLayoutEffect(() => {
@@ -42,6 +46,27 @@ export default function Tree(props: Props) {
       listRef.current.scrollToItem(selectedElementIndex);
     }
   }, [listRef, selectedElementIndex]);
+
+  // Display an additional full-width background under a selected item.
+  useLayoutEffect(() => {
+    if (
+      selectedElementIndex !== null &&
+      listRef.current != null &&
+      selectedElementBackgroundRef.current != null
+    ) {
+      const top = selectedElementIndex * lineHeight - scroll.scrollOffset;
+      selectedElementBackgroundRef.current.style.setProperty('--top', top);
+      selectedElementBackgroundRef.current.style.display = '';
+    } else if (selectedElementBackgroundRef.current != null) {
+      selectedElementBackgroundRef.current.style.display = 'none';
+    }
+  }, [
+    lineHeight,
+    listRef,
+    scroll.scrollOffset,
+    selectedElementBackgroundRef,
+    selectedElementIndex,
+  ]);
 
   // Navigate the tree with up/down arrow keys.
   useEffect(() => {
@@ -95,22 +120,31 @@ export default function Tree(props: Props) {
         {ownerStack.length > 0 ? <OwnersStack /> : <SearchInput />}
         <InspectHostNodesToggle />
       </div>
-      <div className={styles.AutoSizerWrapper}>
-        <AutoSizer>
-          {({ height, width }) => (
-            <FixedSizeList
-              className={styles.List}
-              height={height}
-              itemCount={numElements}
-              itemData={itemData}
-              itemSize={lineHeight}
-              ref={listRef}
-              width={width}
-            >
-              {Element}
-            </FixedSizeList>
-          )}
-        </AutoSizer>
+      <div className={styles.FullSize}>
+        <div className={styles.OverflowHider}>
+          <div
+            className={styles.SelectedElementBackground}
+            ref={selectedElementBackgroundRef}
+          />
+          <div className={styles.AutoSizerWrapper}>
+            <AutoSizer>
+              {({ height, width }) => (
+                <FixedSizeList
+                  className={styles.List}
+                  height={height}
+                  itemCount={numElements}
+                  itemData={itemData}
+                  itemSize={lineHeight}
+                  onScroll={setScroll}
+                  ref={listRef}
+                  width={width}
+                >
+                  {Element}
+                </FixedSizeList>
+              )}
+            </AutoSizer>
+          </div>
+        </div>
       </div>
     </div>
   );
