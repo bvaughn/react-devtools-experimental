@@ -14,8 +14,6 @@
 }
 
 .SelectedElement {
-  background-color: var(--color-tree-node-selected);
-
   /* Invert colors */
   --color-component-name: var(--color-component-name-inverted);
   --color-jsx-arrow-brackets: var(--color-jsx-arrow-brackets-inverted);
