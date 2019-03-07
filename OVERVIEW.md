@@ -165,7 +165,7 @@ while (index !== currentWeight) {
 
 ## Profiler
 
-The Profiler UI is a powerful tool for identifying and fixing performance problems. The primary goal of the new profiler is to minimize the impact of running it (so that it doesn't interfere with the application beign profiled). This can be accomplished by:
+The Profiler UI is a powerful tool for identifying and fixing performance problems. The primary goal of the new profiler is to minimize the impact of running it (so that it doesn't interfere with the application being profiled). This can be accomplished by:
 * Minimizing bridge traffic.
 * Efficiently serializing bridge messages.
 
