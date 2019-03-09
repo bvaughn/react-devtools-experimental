@@ -288,7 +288,6 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
           store.roots.forEach(rootID => {
             recursivelySearchTree(store, rootID, regExp, searchResults);
           });
-
           if (searchResults.length > 0) {
             if (prevSearchIndex === null) {
               searchIndex = 0;
@@ -307,17 +306,14 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
     }
   }
 
-  // Changes in search index should override the selected element.
-  if (searchIndex !== prevSearchIndex) {
-    if (searchIndex === null) {
-      selectedElementIndex = null;
-      selectedElementID = null;
-    } else {
-      selectedElementID = ((searchResults[searchIndex]: any): number);
-      selectedElementIndex = store.getIndexOfElementID(
-        ((selectedElementID: any): number)
-      );
-    }
+  if (searchIndex === null) {
+    selectedElementIndex = null;
+    selectedElementID = null;
+  } else {
+    selectedElementID = ((searchResults[searchIndex]: any): number);
+    selectedElementIndex = store.getIndexOfElementID(
+      ((selectedElementID: any): number)
+    );
   }
 
   return {
