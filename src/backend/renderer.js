@@ -1334,6 +1334,12 @@ export function attach(
       // Does the current renderer support editable function props?
       canEditFunctionProps: typeof overrideProps === 'function',
 
+      // Is this Suspense, and can we toggle it?
+      // TODO: this will incorrectly enable it on old versions.
+      canToggleSuspense:
+        typeof overrideProps === 'function' &&
+        tag === ReactTypeOfWork.SuspenseComponent,
+
       // Can view component source location.
       canViewSource,
 
@@ -1554,6 +1560,31 @@ export function attach(
     isProfiling = false;
   }
 
+  let suspendedIds = new Set();
+
+  function shouldSuspendFiber(fiber) {
+    if (suspendedIds.size === 0) {
+      return false;
+    }
+    // TODO: maybe optimize this.
+    const id = getFiberID(getPrimaryFiber(((fiber: any): Fiber)));
+    return suspendedIds.has(id);
+  }
+
+  function toggleSuspense(id) {
+    if (typeof overrideProps !== 'function') {
+      return;
+    }
+    if (suspendedIds.has(id)) {
+      suspendedIds.delete(id);
+    } else {
+      suspendedIds.add(id);
+    }
+    // Force a re-render.
+    const fiber = idToFiberMap.get(id);
+    overrideProps(fiber, [], null);
+  }
+
   return {
     cleanup,
     getCommitDetails,
@@ -1571,6 +1602,8 @@ export function attach(
     setInHook,
     setInProps,
     setInState,
+    shouldSuspendFiber,
+    toggleSuspense,
     startProfiling,
     stopProfiling,
     walkTree,

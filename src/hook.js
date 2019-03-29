@@ -149,6 +149,15 @@ export function installHook(target: any): DevToolsHook | null {
     }
   }
 
+  function shouldSuspendFiber(rendererID, fiber) {
+    const rendererInterface = rendererInterfaces.get(rendererID);
+    if (rendererInterface != null) {
+      // TODO: does this need a check?
+      return rendererInterface.shouldSuspendFiber(fiber);
+    }
+    return false;
+  }
+
   // TODO: More meaningful names for "rendererInterfaces" and "renderers".
   const fiberRoots = {};
   const rendererInterfaces = new Map();
@@ -175,6 +184,7 @@ export function installHook(target: any): DevToolsHook | null {
     checkDCE,
     onCommitFiberUnmount,
     onCommitFiberRoot,
+    shouldSuspendFiber,
   };
 
   Object.defineProperty(

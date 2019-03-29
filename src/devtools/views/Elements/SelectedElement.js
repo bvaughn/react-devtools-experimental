@@ -15,7 +15,11 @@ import HooksTree from './HooksTree';
 import InspectedElementTree from './InspectedElementTree';
 import { hydrate } from 'src/hydration';
 import styles from './SelectedElement.css';
-import { ElementTypeClass, ElementTypeFunction } from '../../types';
+import {
+  ElementTypeClass,
+  ElementTypeFunction,
+  ElementTypeSuspense,
+} from '../../types';
 
 import type { InspectedElement } from './types';
 import type { DehydratedData, Element } from './types';
@@ -52,6 +56,17 @@ export default function SelectedElement(_: Props) {
     }
   }, [selectedElementID, viewElementSource]);
 
+  const toggleSuspense = useCallback(() => {
+    if (element === null) {
+      return;
+    }
+    const rendererID = store.getRendererIDForElement(element.id);
+    bridge.send('toggleSuspense', {
+      id: element.id,
+      rendererID,
+    });
+  }, [element]);
+
   if (element === null) {
     return (
       <div className={styles.SelectedElement}>
@@ -65,6 +80,9 @@ export default function SelectedElement(_: Props) {
     inspectedElement.canViewSource &&
     viewElementSource !== null;
 
+  const canToggleSuspense =
+    inspectedElement && inspectedElement.canToggleSuspense;
+
   return (
     <div className={styles.SelectedElement}>
       <div className={styles.TitleRow}>
@@ -73,6 +91,16 @@ export default function SelectedElement(_: Props) {
             {element.displayName}
           </div>
         </div>
+
+        {canToggleSuspense && (
+          <Button
+            className={styles.IconButton}
+            onClick={toggleSuspense}
+            title="Toggle Suspense loading state"
+          >
+            <ButtonIcon type="toggle-suspense" />
+          </Button>
+        )}
 
         <Button
           className={styles.IconButton}

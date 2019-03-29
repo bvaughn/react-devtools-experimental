@@ -15,6 +15,7 @@ export type IconType =
   | 'record'
   | 'reload'
   | 'search'
+  | 'toggle-suspense'
   | 'undo'
   | 'up'
   | 'view-dom'
@@ -60,6 +61,8 @@ export default function ButtonIcon({ type }: Props) {
     case 'search':
       pathData = PATH_SEARCH;
       break;
+    case 'toggle-suspense':
+      return '🌀'; // TODO
     case 'undo':
       pathData = PATH_UNDO;
       break;

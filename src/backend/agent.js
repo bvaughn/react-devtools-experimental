@@ -74,6 +74,7 @@ export default class Agent extends EventEmitter {
     bridge.addListener('startProfiling', this.startProfiling);
     bridge.addListener('stopInspectingDOM', this.stopInspectingDOM);
     bridge.addListener('stopProfiling', this.stopProfiling);
+    bridge.addListener('toggleSuspense', this.toggleSuspense);
     bridge.addListener('shutdown', this.shutdown);
     bridge.addListener('viewElementSource', this.viewElementSource);
 
@@ -305,6 +306,15 @@ export default class Agent extends EventEmitter {
       renderer.stopProfiling();
     }
     this._bridge.send('profilingStatus', this._isProfiling);
+  };
+
+  toggleSuspense = ({ id, rendererID }: InspectSelectParams) => {
+    const renderer = this._rendererInterfaces[rendererID];
+    if (renderer == null) {
+      console.warn(`Invalid renderer id "${rendererID}" for element "${id}"`);
+    } else {
+      renderer.toggleSuspense(id);
+    }
   };
 
   viewElementSource = ({ id, rendererID }: InspectSelectParams) => {

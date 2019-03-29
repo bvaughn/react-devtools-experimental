@@ -44,6 +44,9 @@ export type InspectedElement = {|
   // Can view component source location.
   canViewSource: boolean,
 
+  // Is this a Suspense, and can we toggle it?
+  canToggleSuspense: boolean,
+
   // Inspectable properties.
   context: Object | null,
   hooks: Object | null,
