@@ -10,6 +10,7 @@ import ElementTypes from './ElementTypes';
 import InspectableElements from './InspectableElements';
 import InteractionTracing from './InteractionTracing';
 import ToDoList from './ToDoList';
+import SuspenseTree from './SuspenseTree';
 
 import './styles.css';
 
@@ -32,6 +33,7 @@ function mountTestApp() {
   mountHelper(ElementTypes);
   mountHelper(EditableProps);
   mountHelper(DeeplyNestedComponents);
+  mountHelper(SuspenseTree);
 }
 
 function unmountTestApp() {
