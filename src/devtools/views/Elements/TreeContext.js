@@ -195,9 +195,11 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
   } = state;
 
   const prevSearchIndex = searchIndex;
+  console.log('searchIndex: ', searchIndex);
   const numPrevSearchResults = searchResults.length;
 
   // Search isn't supported when the owner's tree is active.
+  console.log('type: ', type);
   if (ownerStack.length === 0) {
     switch (type) {
       case 'GO_TO_NEXT_SEARCH_RESULT':
@@ -306,14 +308,17 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
     }
   }
 
-  if (searchIndex === null) {
-    selectedElementIndex = null;
-    selectedElementID = null;
-  } else {
-    selectedElementID = ((searchResults[searchIndex]: any): number);
-    selectedElementIndex = store.getIndexOfElementID(
-      ((selectedElementID: any): number)
-    );
+  // Changes in search index should override the selected element.
+  if (searchIndex !== prevSearchIndex || prevSearchIndex === 0) {
+    if (searchIndex === null) {
+      selectedElementIndex = null;
+      selectedElementID = null;
+    } else {
+      selectedElementID = ((searchResults[searchIndex]: any): number);
+      selectedElementIndex = store.getIndexOfElementID(
+        ((selectedElementID: any): number)
+      );
+    }
   }
 
   return {
