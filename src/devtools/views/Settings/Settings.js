@@ -2,6 +2,7 @@
 
 import React, { useCallback, useContext } from 'react';
 import { createPortal } from 'react-dom';
+import Radio from '../Radio';
 import { SettingsContext } from './SettingsContext';
 
 import styles from './Settings.css';
@@ -34,61 +35,56 @@ export default function Settings({ portalContainer }: Props) {
       <div className={styles.Section}>
         <div className={styles.Header}>Theme</div>
         <div className={styles.OptionGroup}>
-          <label className={styles.Option}>
-            <input
-              type="radio"
-              name="Settings-Settings-theme"
-              checked={theme === 'auto'}
-              value="auto"
-              onChange={updateTheme}
-            />{' '}
+          <Radio
+            className={styles.Option}
+            name="Settings-Settings-theme"
+            checked={theme === 'auto'}
+            value="auto"
+            onChange={updateTheme}
+          >
             Auto
-          </label>
-          <label className={styles.Option}>
-            <input
-              type="radio"
-              name="Settings-theme"
-              checked={theme === 'light'}
-              value="light"
-              onChange={updateTheme}
-            />{' '}
+          </Radio>
+          <Radio
+            className={styles.Option}
+            name="Settings-theme"
+            checked={theme === 'light'}
+            value="light"
+            onChange={updateTheme}
+          >
             Light
-          </label>
-          <label className={styles.Option}>
-            <input
-              type="radio"
-              name="Settings-theme"
-              checked={theme === 'dark'}
-              value="dark"
-              onChange={updateTheme}
-            />{' '}
+          </Radio>
+          <Radio
+            className={styles.Option}
+            name="Settings-theme"
+            checked={theme === 'dark'}
+            value="dark"
+            onChange={updateTheme}
+          >
             Dark
-          </label>
+          </Radio>
         </div>
       </div>
       <div className={styles.Section}>
         <div className={styles.Header}>Display density</div>
         <div className={styles.OptionGroup}>
-          <label className={styles.Option}>
-            <input
-              type="radio"
-              name="Settings-displayDensity"
-              checked={displayDensity === 'compact'}
-              value="compact"
-              onChange={updateDisplayDensity}
-            />{' '}
+          <Radio
+            className={styles.Option}
+            name="Settings-displayDensity"
+            checked={displayDensity === 'compact'}
+            value="compact"
+            onChange={updateDisplayDensity}
+          >
             Compact
-          </label>
-          <label className={styles.Option}>
-            <input
-              type="radio"
-              name="Settings-displayDensity"
-              checked={displayDensity === 'comfortable'}
-              value="comfortable"
-              onChange={updateDisplayDensity}
-            />{' '}
+          </Radio>
+          <Radio
+            className={styles.Option}
+            name="Settings-displayDensity"
+            checked={displayDensity === 'comfortable'}
+            value="comfortable"
+            onChange={updateDisplayDensity}
+          >
             Comfortable
-          </label>
+          </Radio>
         </div>
       </div>
     </div>

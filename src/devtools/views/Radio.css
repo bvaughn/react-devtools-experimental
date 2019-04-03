@@ -1,0 +1,8 @@
+.Radio {
+  display: flex;
+  align-items: center;
+}
+
+.IconSpacing {
+  margin-right: .2em;
+}
