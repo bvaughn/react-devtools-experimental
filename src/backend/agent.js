@@ -385,7 +385,11 @@ export default class Agent extends EventEmitter {
     // but until we're able to fix the Chrome error mentioned above, it seems necessary.
     //
     // this._bridge.send('operations', operations, [operations.buffer]);
-    this._bridge.send('operations', operations);
+    this._bridge.send(
+      'operations',
+      operations,
+      !window.chrome && [operations.buffer]
+    );
   };
 
   _onClick = (event: MouseEvent) => {
