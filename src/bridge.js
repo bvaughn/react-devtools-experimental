@@ -47,7 +47,7 @@ export default class Bridge extends EventEmitter {
 
   _flush = () => {
     while (this._messageQueue.length) {
-      this._wall.send.apply(this._wall, ...this._messageQueue.splice(0, 1)[0]);
+      this._wall.send.apply(this._wall, Object.values(this._messageQueue.splice(0, 1)[0]));
     }
 
     if (this._timeoutID !== null) {
