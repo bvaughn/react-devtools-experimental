@@ -34,7 +34,7 @@ export default class Bridge extends EventEmitter {
       this._wall.send(event, payload, transferable);
       this._time = Date.now();
     } else {
-      this._messageQueue.push(event, payload, transferable);
+      this._messageQueue.push({ event, payload, transferable });
 
       const now = Date.now();
       if (now - time > BATCH_DURATION) {
@@ -47,7 +47,7 @@ export default class Bridge extends EventEmitter {
 
   _flush = () => {
     while (this._messageQueue.length) {
-      this._wall.send.apply(this._wall, this._messageQueue.splice(0, 3));
+      this._wall.send.apply(this._wall, ...this._messageQueue.splice(0, 1)[0]);
     }
 
     if (this._timeoutID !== null) {
