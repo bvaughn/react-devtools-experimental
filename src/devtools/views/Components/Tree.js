@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useMemo,
   useLayoutEffect,
+  useState,
   useRef,
 } from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -34,6 +35,7 @@ export default function Tree(props: Props) {
   } = useContext(TreeContext);
   const listRef = useRef<FixedSizeList<any> | null>(null);
   const treeRef = useRef<HTMLDivElement | null>(null);
+  const [searching, setSearching] = useState(false)
 
   const { lineHeight } = useContext(SettingsContext);
 
@@ -105,7 +107,10 @@ export default function Tree(props: Props) {
   return (
     <div className={styles.Tree} ref={treeRef}>
       <div className={styles.SearchInput}>
-        {ownerStack.length > 0 ? <OwnersStack /> : <SearchInput />}
+        {searching ?
+          <SearchInput />
+          : <OwnersStack onSearchClick={() => setSearching(true)} />
+        }
         <InspectHostNodesToggle />
       </div>
       <div className={styles.AutoSizerWrapper}>
