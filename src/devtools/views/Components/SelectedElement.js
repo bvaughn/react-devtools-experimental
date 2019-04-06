@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useRef,
   useState,
+  useReducer,
 } from 'react';
 import { TreeContext } from './TreeContext';
 import { BridgeContext, StoreContext } from '../context';
@@ -28,15 +29,116 @@ import type { DehydratedData, Element } from './types';
 
 export type Props = {||};
 
+class Cache {
+  constructor(bridge, store) {
+    this.bridge = bridge;
+    this.store = store;
+    this.promises = new Map();
+    this.resolves = new Map();
+    this.results = new Map();
+    this.bridge.addListener('inspectedElement', this.onInspectedElement);
+  }
+
+  onInspectedElement = value => {
+    const { id } = value;
+    const rendererID = this.store.getRendererIDForElement(id);
+
+    value.context = hydrateHelper(value.context);
+    value.hooks = hydrateHelper(value.hooks);
+    value.props = hydrateHelper(value.props);
+    value.state = hydrateHelper(value.state);
+
+    const resolve = this.resolves.get(id);
+    this.promises.delete(id);
+    this.resolves.delete(id);
+    this.results.set(id, {
+      timestamp: Date.now(),
+      value,
+    });
+    resolve();
+  };
+
+  read(id) {
+    if (id === null) {
+      return null;
+    }
+    if (this.results.has(id)) {
+      const result = this.results.get(id);
+      // TODO: this probably doesn't make sense?
+      // Also it doesn't evict items we aren't reading.
+      if (Date.now() - result.timestamp > 5000) {
+        this.results.delete(id);
+      } else {
+        return result.value;
+      }
+    }
+    if (this.promises.has(id)) {
+      throw this.promises.get(id);
+    }
+    this.load(id);
+    throw this.promises.get(id);
+  }
+
+  invalidate(id) {
+    this.results.delete(id);
+  }
+
+  load(id) {
+    this.promises.set(
+      id,
+      new Promise(resolve => {
+        this.resolves.set(id, resolve);
+      })
+    );
+    const rendererID = this.store.getRendererIDForElement(id);
+    // TODO: is this the right time to send both?
+    this.bridge.send('selectElement', { id, rendererID });
+    this.bridge.send('inspectElement', { id, rendererID });
+  }
+}
+
+let cache;
+
 export default function SelectedElement(_: Props) {
-  const { selectedElementID, viewElementSource } = useContext(TreeContext);
+  const {
+    selectedElementID: realSelectedElementID,
+    viewElementSource,
+  } = useContext(TreeContext);
   const bridge = useContext(BridgeContext);
   const store = useContext(StoreContext);
+
+  if (!cache) {
+    // TODO: not a singleton
+    cache = new Cache(bridge, store);
+  }
+
+  const [selectedElementID, setSelectedElementID] = useState(
+    realSelectedElementID
+  );
+  // TODO: this is shady and also makes quick navigation janky.
+  // What am I doing wrong?
+  useEffect(() => {
+    requestIdleCallback(() => {
+      setSelectedElementID(realSelectedElementID);
+    });
+  });
+
+  // TODO: this is gross?
+  const [__, forceUpdate] = useReducer(x => x + 1, 0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      cache.invalidate(selectedElementID);
+      forceUpdate();
+    }, 1000);
+    return () => clearInterval(id);
+  }, [selectedElementID]);
 
   const element =
     selectedElementID !== null ? store.getElementByID(selectedElementID) : null;
 
-  const inspectedElement = useInspectedElement(selectedElementID);
+  const inspectedElement = cache.read(selectedElementID);
+
+  // const inspectedElement = useInspectedElement(selectedElementID);
 
   const highlightElement = useCallback(() => {
     if (element !== null && selectedElementID !== null) {
@@ -249,71 +351,71 @@ function hydrateHelper(dehydratedData: DehydratedData | null): Object | null {
   }
 }
 
-function useInspectedElement(id: number | null): InspectedElement | null {
-  const idRef = useRef(id);
-  const bridge = useContext(BridgeContext);
-  const store = useContext(StoreContext);
+// function useInspectedElement(id: number | null): InspectedElement | null {
+//   const idRef = useRef(id);
+//   const bridge = useContext(BridgeContext);
+//   const store = useContext(StoreContext);
 
-  const [inspectedElement, setInspectedElement] = useState(null);
+//   const [inspectedElement, setInspectedElement] = useState(null);
 
-  useEffect(() => {
-    // Track the current selected element ID.
-    // We ignore any backend updates about previously selected elements.
-    idRef.current = id;
+//   useEffect(() => {
+//     // Track the current selected element ID.
+//     // We ignore any backend updates about previously selected elements.
+//     idRef.current = id;
 
-    // Hide previous/stale insepected element to avoid temporarily showing the wrong values.
-    setInspectedElement(null);
+//     // Hide previous/stale insepected element to avoid temporarily showing the wrong values.
+//     setInspectedElement(null);
 
-    // A null id indicates that there's nothing currently selected in the tree.
-    if (id === null) {
-      return () => {};
-    }
+//     // A null id indicates that there's nothing currently selected in the tree.
+//     if (id === null) {
+//       return () => {};
+//     }
 
-    const rendererID = store.getRendererIDForElement(id) || null;
+//     const rendererID = store.getRendererIDForElement(id) || null;
 
-    // Update the $r variable.
-    bridge.send('selectElement', { id, rendererID });
+//     // Update the $r variable.
+//     bridge.send('selectElement', { id, rendererID });
 
-    // Update props, state, and context in the side panel.
-    const sendBridgeRequest = () => {
-      bridge.send('inspectElement', { id, rendererID });
-    };
+//     // Update props, state, and context in the side panel.
+//     const sendBridgeRequest = () => {
+//       bridge.send('inspectElement', { id, rendererID });
+//     };
 
-    let timeoutID = null;
+//     let timeoutID = null;
 
-    const onInspectedElement = (inspectedElement: InspectedElement) => {
-      if (!inspectedElement || inspectedElement.id !== idRef.current) {
-        // Ignore bridge updates about previously selected elements.
-        return;
-      }
+//     const onInspectedElement = (inspectedElement: InspectedElement) => {
+//       if (!inspectedElement || inspectedElement.id !== idRef.current) {
+//         // Ignore bridge updates about previously selected elements.
+//         return;
+//       }
 
-      if (inspectedElement !== null) {
-        inspectedElement.context = hydrateHelper(inspectedElement.context);
-        inspectedElement.hooks = hydrateHelper(inspectedElement.hooks);
-        inspectedElement.props = hydrateHelper(inspectedElement.props);
-        inspectedElement.state = hydrateHelper(inspectedElement.state);
-      }
+//       if (inspectedElement !== null) {
+//         inspectedElement.context = hydrateHelper(inspectedElement.context);
+//         inspectedElement.hooks = hydrateHelper(inspectedElement.hooks);
+//         inspectedElement.props = hydrateHelper(inspectedElement.props);
+//         inspectedElement.state = hydrateHelper(inspectedElement.state);
+//       }
 
-      setInspectedElement(inspectedElement);
+//       setInspectedElement(inspectedElement);
 
-      // Ask for an update in a second.
-      // Make sure we only ask once though.
-      clearTimeout(((timeoutID: any): TimeoutID));
-      setTimeout(sendBridgeRequest, 1000);
-    };
+//       // Ask for an update in a second.
+//       // Make sure we only ask once though.
+//       clearTimeout(((timeoutID: any): TimeoutID));
+//       setTimeout(sendBridgeRequest, 1000);
+//     };
 
-    bridge.addListener('inspectedElement', onInspectedElement);
+//     bridge.addListener('inspectedElement', onInspectedElement);
 
-    sendBridgeRequest();
+//     sendBridgeRequest();
 
-    return () => {
-      bridge.removeListener('inspectedElement', onInspectedElement);
+//     return () => {
+//       bridge.removeListener('inspectedElement', onInspectedElement);
 
-      if (timeoutID !== null) {
-        clearTimeout(timeoutID);
-      }
-    };
-  }, [bridge, id, idRef, store]);
+//       if (timeoutID !== null) {
+//         clearTimeout(timeoutID);
+//       }
+//     };
+//   }, [bridge, id, idRef, store]);
 
-  return inspectedElement;
-}
+//   return inspectedElement;
+// }

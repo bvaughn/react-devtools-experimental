@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import Tree from './Tree';
 import SelectedElement from './SelectedElement';
@@ -18,7 +18,10 @@ export default function Components({ portalContainer }: Props) {
         <Tree />
       </div>
       <div className={styles.SelectedElementWrapper}>
-        <SelectedElement />
+        {/* TODO */}
+        <Suspense fallback={null}>
+          <SelectedElement />
+        </Suspense>
       </div>
     </div>
   );
