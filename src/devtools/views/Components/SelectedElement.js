@@ -98,7 +98,17 @@ export default function SelectedElement(_: Props) {
       </div>
 
       {inspectedElement === null && (
-        <div className={styles.Loading}>Loading...</div>
+        // This is a loading state.
+        // Props always show up, so we can make selection
+        // change less janky by not hiding this section.
+        <div className={styles.InspectedElement}>
+          <InspectedElementTree
+            label="props"
+            data={null}
+            isLoading
+            showWhenEmpty
+          />
+        </div>
       )}
 
       {inspectedElement !== null && (

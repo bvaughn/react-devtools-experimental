@@ -21,6 +21,7 @@ export default function InspectedElementTree({
   data,
   label,
   overrideValueFn,
+  isLoading = false,
   showWhenEmpty = false,
 }: Props) {
   const isEmpty = data === null || Object.keys(data).length === 0;
@@ -37,14 +38,17 @@ export default function InspectedElementTree({
       <div className={styles.InspectedElementTree}>
         <div className={styles.HeaderRow}>
           <div className={styles.Header}>{label}</div>
-          {!isEmpty && (
+          <div style={{ visibility: isEmpty ? 'hidden' : '' }}>
             <Button onClick={handleCopy}>
               <ButtonIcon type="copy" />
             </Button>
-          )}
+          </div>
         </div>
-        {isEmpty && <div className={styles.Empty}>None</div>}
-        {!isEmpty &&
+        {isLoading ? (
+          <div className={styles.Empty}>Loading...</div>
+        ) : isEmpty ? (
+          <div className={styles.Empty}>None</div>
+        ) : (
           Object.keys((data: any)).map(name => (
             <KeyValue
               key={name}
@@ -54,7 +58,8 @@ export default function InspectedElementTree({
               path={[name]}
               value={(data: any)[name]}
             />
-          ))}
+          ))
+        )}
       </div>
     );
   }
