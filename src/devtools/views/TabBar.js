@@ -22,7 +22,7 @@ export type Props = {|
   selectTab: (tabID: any) => void,
   size: 'large' | 'small',
   tabs: Array<TabInfo>,
-|};
+|}
 
 export default function TabBar({
   currentTab,
