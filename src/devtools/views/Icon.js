@@ -11,7 +11,8 @@ export type IconType =
   | 'profiler'
   | 'ranked-chart'
   | 'search'
-  | 'settings';
+  | 'settings'
+  | 'suspense';
 
 type Props = {|
   className?: string,
@@ -45,6 +46,8 @@ export default function Icon({ className = '', type }: Props) {
     case 'settings':
       pathData = PATH_SETTINGS;
       break;
+    case 'suspense':
+      return '🌀'; // TODO
     default:
       console.warn(`Unsupported type "${type}" specified for Icon`);
       break;

@@ -38,6 +38,7 @@ function createPanelIfReactLoaded() {
 
       let componentsPortalContainer = null;
       let profilerPortalContainer = null;
+      let suspensePortalContainer = null;
       let settingsPortalContainer = null;
 
       let cloneStyleTags = null;
@@ -131,6 +132,7 @@ function createPanelIfReactLoaded() {
               overrideTab,
               profilerPortalContainer,
               settingsPortalContainer,
+              suspensePortalContainer,
               showTabBar: false,
               store,
               viewElementSource,
@@ -244,6 +246,23 @@ function createPanelIfReactLoaded() {
           if (profilerPortalContainer != null) {
             ensureInitialHTMLIsCleared(profilerPortalContainer);
             render('profiler');
+            panel.injectStyles(cloneStyleTags);
+          }
+        });
+      });
+
+      chrome.devtools.panels.create('⚛ Suspense', '', 'panel.html', panel => {
+        panel.onShown.addListener(panel => {
+          if (currentPanel === panel) {
+            return;
+          }
+
+          currentPanel = panel;
+          suspensePortalContainer = panel.container;
+
+          if (suspensePortalContainer != null) {
+            ensureInitialHTMLIsCleared(suspensePortalContainer);
+            render('suspense');
             panel.injectStyles(cloneStyleTags);
           }
         });

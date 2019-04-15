@@ -9,8 +9,10 @@ import {
   TREE_OPERATION_REMOVE,
   TREE_OPERATION_RESET_CHILDREN,
   TREE_OPERATION_UPDATE_TREE_BASE_DURATION,
+  TREE_OPERATION_UPDATE_SUSPENSE_STATE,
+  SUSPENSE_STATE_PRIMARY,
 } from '../constants';
-import { ElementTypeRoot } from './types';
+import { ElementTypeRoot, ElementTypeSuspense } from './types';
 import { utfDecodeString } from '../utils';
 import { __DEBUG__ } from '../constants';
 import ProfilingCache from './ProfilingCache';
@@ -80,7 +82,7 @@ export default class Store extends EventEmitter {
 
   // Map of root (id) to a list of tree mutation that occur during profiling.
   // Once profiling is finished, these mutations can be used, along with the initial tree snapshots,
-  // to reconstruct the state of each root for each commit.
+  // to reconstruct the state of each root for each commit.
   _profilingOperations: Map<number, Array<Uint32Array>> = new Map();
 
   // Stores screenshots for each commit (when profiling).
@@ -88,9 +90,11 @@ export default class Store extends EventEmitter {
 
   // Snapshot of the state of the main Store (including all roots) when profiling started.
   // Once profiling is finished, this snapshot can be used along with "operations" messages emitted during profiling,
-  // to reconstruct the state of each root for each commit.
+  // to reconstruct the state of each root for each commit.
   // It's okay to use a single root to store this information because node IDs are unique across all roots.
   _profilingSnapshot: Map<number, ProfilingSnapshotNode> = new Map();
+
+  _suspenseState: Map<number, number> = new Map();
 
   // Incremented each time the store is mutated.
   // This enables a passive effect to detect a mutation between render and commit phase.
@@ -407,6 +411,14 @@ export default class Store extends EventEmitter {
     return null;
   }
 
+  getSuspenseState(id: number): number {
+    if (this._suspenseState.has(id)) {
+      return this._suspenseState.get(id);
+    } else {
+      return SUSPENSE_STATE_PRIMARY;
+    }
+  }
+
   startProfiling(): void {
     this._bridge.send('startProfiling');
 
@@ -644,6 +656,9 @@ export default class Store extends EventEmitter {
               );
             }
             this._idToElement.delete(childID);
+            if (child.type === ElementTypeSuspense) {
+              this._suspenseState.delete(childID);
+            }
             child.children.forEach(recursivelyRemove);
           };
 
@@ -683,6 +698,9 @@ export default class Store extends EventEmitter {
           weightDelta = -element.weight;
 
           this._idToElement.delete(id);
+          if (element.type === ElementTypeSuspense) {
+            this._suspenseState.delete(id);
+          }
 
           parentElement = ((this._idToElement.get(parentID): any): Element);
           if (parentElement == null) {
@@ -746,6 +764,26 @@ export default class Store extends EventEmitter {
           // We can ignore them at this point.
           // The profiler UI uses them lazily in order to generate the tree.
           i = i + 3;
+          break;
+        case TREE_OPERATION_UPDATE_SUSPENSE_STATE:
+          id = ((operations[i + 1]: any): number);
+          const suspenseState = ((operations[i + 2]: any): number);
+
+          i = i + 3;
+
+          if (!this._idToElement.has(id)) {
+            throw new Error(
+              'Store does not contain fiber ' +
+                id +
+                '. This is a bug in React DevTools.'
+            );
+          }
+
+          if (suspenseState === SUSPENSE_STATE_PRIMARY) {
+            this._suspenseState.delete(id);
+          } else {
+            this._suspenseState.set(id, suspenseState);
+          }
           break;
         default:
           throw Error(`Unsupported Bridge operation ${operation}`);

@@ -24,6 +24,10 @@ import {
   TREE_OPERATION_RESET_CHILDREN,
   TREE_OPERATION_RECURSIVE_REMOVE_CHILDREN,
   TREE_OPERATION_UPDATE_TREE_BASE_DURATION,
+  TREE_OPERATION_UPDATE_SUSPENSE_STATE,
+  SUSPENSE_STATE_PRIMARY,
+  SUSPENSE_STATE_FALLBACK,
+  SUSPENSE_STATE_FORCED_FALLBACK,
 } from '../constants';
 import { getUID } from '../utils';
 import { inspectHooksOfFiber } from './ReactDebugHooks';
@@ -781,6 +785,26 @@ export function attach(
     endNextOperation(false);
   }
 
+  function recordSuspenseState(fiber) {
+    // Note: intentionally reading from passed fiber
+    // because primaryFiber may not be current.
+    const didTimeout = fiber.memoizedState !== null;
+
+    const primaryFiber = getPrimaryFiber(fiber);
+    const id = getFiberID(primaryFiber);
+    const isFallbackForced = forceFallbackForSuspenseIDs.has(id);
+    const suspenseState = isFallbackForced
+      ? SUSPENSE_STATE_FORCED_FALLBACK
+      : didTimeout
+      ? SUSPENSE_STATE_FALLBACK
+      : SUSPENSE_STATE_PRIMARY;
+    beginNextOperation(3);
+    nextOperation[0] = TREE_OPERATION_UPDATE_SUSPENSE_STATE;
+    nextOperation[1] = id;
+    nextOperation[2] = suspenseState;
+    endNextOperation(false);
+  }
+
   function mountFiberRecursively(
     fiber: Fiber,
     parentFiber: Fiber | null,
@@ -800,6 +824,9 @@ export function attach(
       fiber.memoizedState !== null;
 
     if (isTimedOutSuspense) {
+      // Only timed-out Suspense needs to be recorded on mount.
+      // Otherwise the store will assume it's in primary state.
+      recordSuspenseState(fiber);
       // Special case: if Suspense mounts in a timed-out state,
       // get the fallback child from the inner fragment and mount
       // it as if it was our own child. Updates handle this too.
@@ -928,6 +955,10 @@ export function attach(
       // Suspense components only have a non-null memoizedState if they're timed-out.
       const prevDidTimeout = prevFiber.memoizedState !== null;
       const nextDidTimeOut = nextFiber.memoizedState !== null;
+
+      if (prevDidTimeout !== nextDidTimeOut) {
+        recordSuspenseState(nextFiber);
+      }
 
       // The logic below is inspired by the codepaths in updateSuspenseComponent()
       // inside ReactFiberBeginWork in the React source code.

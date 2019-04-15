@@ -7,6 +7,7 @@ import {
   TREE_OPERATION_REMOVE,
   TREE_OPERATION_RESET_CHILDREN,
   TREE_OPERATION_UPDATE_TREE_BASE_DURATION,
+  TREE_OPERATION_UPDATE_SUSPENSE_STATE,
 } from 'src/constants';
 import { utfDecodeString } from 'src/utils';
 import { ElementTypeRoot } from 'src/devtools/types';
@@ -349,6 +350,9 @@ function updateTree(
           );
         }
 
+        i = i + 3;
+        break;
+      case TREE_OPERATION_UPDATE_SUSPENSE_STATE:
         i = i + 3;
         break;
       default:

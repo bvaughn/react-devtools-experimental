@@ -6,6 +6,7 @@ import { BridgeContext, StoreContext } from './context';
 import Components from './Components/Components';
 import Profiler from './Profiler/Profiler';
 import Settings from './Settings/Settings';
+import SuspenseDebugger from './SuspenseDebugger/SuspenseDebugger';
 import TabBar from './TabBar';
 import { SettingsContextController } from './Settings/SettingsContext';
 import { TreeContextController } from './Components/TreeContext';
@@ -21,7 +22,7 @@ import type { Bridge } from '../../types';
 
 export type BrowserName = 'Chrome' | 'Firefox';
 export type BrowserTheme = 'dark' | 'light';
-export type TabID = 'components' | 'profiler' | 'settings';
+export type TabID = 'components' | 'profiler' | 'suspense' | 'settings';
 
 export type Props = {|
   bridge: Bridge,
@@ -43,6 +44,7 @@ export type Props = {|
   // but individual tabs (e.g. Components, Profiling) can be rendered into portals within their browser panels.
   componentsPortalContainer?: Element,
   profilerPortalContainer?: Element,
+  suspensePortalContainer?: Element,
   settingsPortalContainer?: Element,
 |};
 
@@ -64,9 +66,15 @@ const settingsTab = {
   label: 'Settings',
   title: 'React Settings',
 };
+const suspenseTab = {
+  id: ('suspense': TabID),
+  icon: 'suspense',
+  label: 'Suspense',
+  title: 'Suspense Debugger',
+};
 
-const tabsWithProfiler = [componentsTab, profilerTab, settingsTab];
-const tabsWithoutProfiler = [componentsTab, settingsTab];
+const tabsWithProfiler = [componentsTab, profilerTab, suspenseTab, settingsTab];
+const tabsWithoutProfiler = [componentsTab, suspenseTab, settingsTab];
 
 export default function DevTools({
   bridge,
@@ -76,6 +84,7 @@ export default function DevTools({
   componentsPortalContainer,
   overrideTab,
   profilerPortalContainer,
+  suspensePortalContainer,
   settingsPortalContainer,
   showTabBar = false,
   store,
@@ -116,6 +125,7 @@ export default function DevTools({
           componentsPortalContainer={componentsPortalContainer}
           profilerPortalContainer={profilerPortalContainer}
           settingsPortalContainer={settingsPortalContainer}
+          suspensePortalContainer={suspensePortalContainer}
         >
           <TreeContextController viewElementSource={viewElementSource}>
             <ProfilerContextController>
@@ -154,6 +164,9 @@ export default function DevTools({
                 </div>
                 <div className={styles.TabContent} hidden={tab !== 'settings'}>
                   <Settings portalContainer={settingsPortalContainer} />
+                </div>
+                <div className={styles.TabContent} hidden={tab !== 'suspense'}>
+                  <SuspenseDebugger portalContainer={suspensePortalContainer} />
                 </div>
               </div>
             </ProfilerContextController>
