@@ -5,7 +5,7 @@ import memoize from 'memoize-one';
 import throttle from 'lodash.throttle';
 import {
   TREE_OPERATION_ADD,
-  TREE_OPERATION_RECURSIVE_REMOVE_CHILDREN,
+  TREE_OPERATION_RECURSIVE_HIDE_CHILDREN,
   TREE_OPERATION_REMOVE,
   TREE_OPERATION_RESET_CHILDREN,
   TREE_OPERATION_UPDATE_TREE_BASE_DURATION,
@@ -74,6 +74,11 @@ export default class Store extends EventEmitter {
   // The backend is currently profiling.
   // When profiling is in progress, operations are stored so that we can later reconstruct past commit trees.
   _isProfiling: boolean = false;
+
+  // These are IDs which were conceptually "removed" from the tree,
+  // but whose Fibers may resurface later either as "add" or "remove" events.
+  // This is what happens to a Suspended "primary" tree in Concurrent Mode.
+  _hiddenIDs: Set<number> = new Set();
 
   // Suspense cache for reading profilign data.
   _profilingCache: ProfilingCache;
@@ -529,6 +534,11 @@ export default class Store extends EventEmitter {
             );
           }
 
+          // If this node was hidden, it's not anymore.
+          if (this._hiddenIDs.has(id)) {
+            this._hiddenIDs.delete(id);
+          }
+
           if (type === ElementTypeRoot) {
             if (__DEBUG__) {
               debug('Add', `new root fiber ${id}`);
@@ -619,7 +629,7 @@ export default class Store extends EventEmitter {
             weightDelta = 1;
           }
           break;
-        case TREE_OPERATION_RECURSIVE_REMOVE_CHILDREN: {
+        case TREE_OPERATION_RECURSIVE_HIDE_CHILDREN: {
           id = ((operations[i + 1]: any): number);
 
           if (!this._idToElement.has(id)) {
@@ -645,6 +655,11 @@ export default class Store extends EventEmitter {
             }
             this._idToElement.delete(childID);
             child.children.forEach(recursivelyRemove);
+
+            // Note these children would still either get re-"added" or "removed" later.
+            // Conceptually they're removed, but not from React's point of view.
+            // We'll track them so that we don't throw when this happens.
+            this._hiddenIDs.add(childID);
           };
 
           // Track removed items so search results can be updated
@@ -667,6 +682,16 @@ export default class Store extends EventEmitter {
         case TREE_OPERATION_REMOVE: {
           id = ((operations[i + 1]: any): number);
 
+          i = i + 2;
+
+          // If this node was hidden, it's not anymore.
+          if (this._hiddenIDs.has(id)) {
+            this._hiddenIDs.delete(id);
+            // No need to do anything further.
+            // We've already adjusted the weights when it got hidden.
+            break;
+          }
+
           if (!this._idToElement.has(id)) {
             throw new Error(
               'Store does not contain fiber ' +
@@ -674,8 +699,6 @@ export default class Store extends EventEmitter {
                 '. This is a bug in React DevTools.'
             );
           }
-
-          i = i + 2;
 
           element = ((this._idToElement.get(id): any): Element);
           parentID = element.parentID;

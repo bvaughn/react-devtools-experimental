@@ -3,7 +3,7 @@
 import {
   __DEBUG__,
   TREE_OPERATION_ADD,
-  TREE_OPERATION_RECURSIVE_REMOVE_CHILDREN,
+  TREE_OPERATION_RECURSIVE_HIDE_CHILDREN,
   TREE_OPERATION_REMOVE,
   TREE_OPERATION_RESET_CHILDREN,
   TREE_OPERATION_UPDATE_TREE_BASE_DURATION,
@@ -159,6 +159,7 @@ function updateTree(
 ): CommitTree {
   // Clone the original tree so edits don't affect it.
   const nodes = new Map(commitTree.nodes);
+  const hiddenIDs = new Set();
 
   // Clone nodes before mutating them so edits don't affect them.
   const getClonedNode = (id: number): Node => {
@@ -183,6 +184,10 @@ function updateTree(
         type = ((operations[i + 2]: any): ElementType);
 
         i = i + 3;
+
+        if (hiddenIDs.has(id)) {
+          hiddenIDs.delete(id);
+        }
 
         if (nodes.has(id)) {
           throw new Error(
@@ -256,7 +261,7 @@ function updateTree(
           nodes.set(id, node);
         }
         break;
-      case TREE_OPERATION_RECURSIVE_REMOVE_CHILDREN:
+      case TREE_OPERATION_RECURSIVE_HIDE_CHILDREN:
         id = ((operations[i + 1]: any): number);
 
         i = i + 2;
@@ -282,6 +287,10 @@ function updateTree(
           const child = getClonedNode(childID);
           nodes.delete(childID);
           child.children.forEach(recursivelyRemove);
+
+          // This node will later receive its own ADD or REMOVE
+          // events. Remember this so we don't throw.
+          hiddenIDs.add(id);
         };
 
         node.children.forEach(recursivelyRemove);
@@ -291,6 +300,12 @@ function updateTree(
         id = ((operations[i + 1]: any): number);
 
         i = i + 2;
+
+        if (hiddenIDs.has(id)) {
+          hiddenIDs.delete(id);
+          // We've already deleted it.
+          break;
+        }
 
         if (!nodes.has(id)) {
           throw new Error(
