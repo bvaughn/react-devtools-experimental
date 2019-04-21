@@ -9,6 +9,7 @@ import EditableProps from './EditableProps';
 import ElementTypes from './ElementTypes';
 import InspectableElements from './InspectableElements';
 import InteractionTracing from './InteractionTracing';
+import Offscreen from './Offscreen';
 import ToDoList from './ToDoList';
 import Toggle from './Toggle';
 import SuspenseTree from './SuspenseTree';
@@ -33,6 +34,7 @@ function mountTestApp() {
   mountHelper(InspectableElements);
   mountHelper(ElementTypes);
   mountHelper(EditableProps);
+  mountHelper(Offscreen);
   mountHelper(Toggle);
   mountHelper(SuspenseTree);
   mountHelper(DeeplyNestedComponents);

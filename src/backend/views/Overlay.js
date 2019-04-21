@@ -80,8 +80,41 @@ class OverlayRect {
   }
 }
 
+const tipArrowSize = 12;
+const tipBackgroundColor = '#333740';
+const tipArrowColor = tipBackgroundColor; // A separate variable helps debugging just the tooltip.
+
+// https://css-tricks.com/snippets/css/css-triangle/
+// http://apps.eky.hk/css-triangle-generator/
+const NORTH_TIP_ARROW_WIDTH = tipArrowSize * Math.sqrt(2);
+const NORTH_TIP_ARROW_HEIGHT = (tipArrowSize * Math.sqrt(2)) / 2;
+const NORTH_TIP_ARROW_STYLES = {
+  // A "north" CSS triangle arrow 90deg-45deg-45deg: ▲ which we will rotate around the center of its wide side.
+  // The 90deg corner will point to the element.
+  borderTop: `0 solid transparent`,
+  borderRight: `${NORTH_TIP_ARROW_HEIGHT}px solid transparent`,
+  borderBottom: `${NORTH_TIP_ARROW_HEIGHT}px solid ${tipArrowColor}`,
+  borderLeft: `${NORTH_TIP_ARROW_HEIGHT}px solid transparent`,
+  transformOrigin: '0 0',
+  transform: `translate(${-NORTH_TIP_ARROW_HEIGHT}px, ${-NORTH_TIP_ARROW_HEIGHT +
+    1}px)`,
+};
+const NORTHWEST_TIP_ARROW_SIZE = tipArrowSize;
+const NORTHWEST_TIP_ARROW_STYLES = {
+  // A "northwest" CSS triangle arrow 90deg-45deg-45deg: ◤ which we will rotate around its 90deg tip.
+  // One of the 45deg corners will point to the element.
+  borderTop: `${NORTHWEST_TIP_ARROW_SIZE / 2}px solid ${tipArrowColor}`,
+  borderRight: `${NORTHWEST_TIP_ARROW_SIZE / 2}px solid transparent`,
+  borderBottom: `${NORTHWEST_TIP_ARROW_SIZE / 2}px solid transparent`,
+  borderLeft: `${NORTHWEST_TIP_ARROW_SIZE / 2}px solid ${tipArrowColor}`,
+  transformOrigin: '0 0',
+  transform: `none`,
+};
+
 class OverlayTip {
   tip: HTMLElement;
+  tipArrow: HTMLElement;
+  tipArrowSymbol: HTMLElement;
   nameSpan: HTMLElement;
   dimSpan: HTMLElement;
 
@@ -90,7 +123,7 @@ class OverlayTip {
     assign(this.tip.style, {
       display: 'flex',
       flexFlow: 'row nowrap',
-      backgroundColor: '#333740',
+      backgroundColor: tipBackgroundColor,
       borderRadius: '2px',
       fontFamily:
         '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace',
@@ -99,7 +132,30 @@ class OverlayTip {
       pointerEvents: 'none',
       position: 'fixed',
       fontSize: '12px',
+      lineHeight: '18px',
       whiteSpace: 'nowrap',
+      zIndex: '10000000',
+    });
+
+    this.tipArrow = doc.createElement('span');
+
+    this.tipArrowSymbol = doc.createElement('span');
+    this.tipArrow.appendChild(this.tipArrowSymbol);
+    assign(this.tipArrowSymbol.style, {
+      display: 'block',
+      width: 0,
+      height: 0,
+    });
+    this.tip.appendChild(this.tipArrow);
+    assign(this.tipArrow.style, {
+      display: 'none',
+      width: 0,
+      height: 0,
+      transformOrigin: '0 0',
+      transform: 'none',
+      position: 'absolute',
+      zIndex: '1',
+      overflow: 'visible',
     });
 
     this.nameSpan = doc.createElement('span');
@@ -110,13 +166,13 @@ class OverlayTip {
       paddingRight: '0.5rem',
       marginRight: '0.5rem',
     });
+
     this.dimSpan = doc.createElement('span');
     this.tip.appendChild(this.dimSpan);
     assign(this.dimSpan.style, {
       color: '#d7d7d7',
     });
 
-    this.tip.style.zIndex = '10000000';
     container.appendChild(this.tip);
   }
 
@@ -133,12 +189,16 @@ class OverlayTip {
   }
 
   updatePosition(dims, bounds) {
+    // Reset the size before measuring. The size will be assigned based on the results from `findTipPos`.
+    assign(this.tip.style, { width: 'auto', height: 'auto' });
     const tipRect = this.tip.getBoundingClientRect();
     const tipPos = findTipPos(dims, bounds, {
       width: tipRect.width,
       height: tipRect.height,
     });
-    assign(this.tip.style, tipPos.style);
+    assign(this.tip.style, tipPos.tipStyles);
+    assign(this.tipArrow.style, tipPos.tipArrowStyles);
+    assign(this.tipArrowSymbol.style, tipPos.tipArrowSymbolStyles);
   }
 }
 
@@ -298,37 +358,147 @@ function getFiber(node) {
 function findTipPos(dims, bounds, tipSize) {
   const tipHeight = Math.max(tipSize.height, 20);
   const tipWidth = Math.max(tipSize.width, 60);
+  const offscreenIconWidth = 16;
   const margin = 5;
 
+  let offscreenY = 'none';
   let top;
   if (dims.top + dims.height + tipHeight <= bounds.top + bounds.height) {
     if (dims.top + dims.height < bounds.top + 0) {
       top = bounds.top + margin;
+      offscreenY = 'top';
     } else {
       top = dims.top + dims.height + margin;
     }
   } else if (dims.top - tipHeight <= bounds.top + bounds.height) {
     if (dims.top - tipHeight - margin < bounds.top + margin) {
       top = bounds.top + margin;
+      offscreenY = 'top';
     } else {
       top = dims.top - tipHeight - margin;
     }
   } else {
     top = bounds.top + bounds.height - tipHeight - margin;
+    offscreenY = 'bottom';
   }
 
+  let offscreenX = 'none';
   let left = dims.left + margin;
   if (dims.left < bounds.left) {
+    offscreenX = dims.left + dims.width < bounds.left ? 'left' : 'none';
     left = bounds.left + margin;
   }
   if (dims.left + tipWidth > bounds.left + bounds.width) {
-    left = bounds.left + bounds.width - tipWidth - margin;
+    offscreenX = dims.left > bounds.left + bounds.width ? 'right' : 'none';
+    left = bounds.left + bounds.width - tipWidth - offscreenIconWidth - margin;
   }
 
-  top += 'px';
-  left += 'px';
+  // Show where to look for the elements if they are positioned offscreen.
+  let tipArrowStyles = {
+    display: 'block',
+    // We will position based on each arrow type anchor point (wide side base for "north", corner for "northwest").
+    top: 'auto',
+    right: 'auto',
+    bottom: 'auto',
+    left: 'auto',
+    // We will rotate around the "north" arrow: ▲ wide side center.
+    transform: 'rotate(0deg)',
+  };
+  let tipArrowSymbolStyles = {};
+  const tipArrowSafeOffset = 2;
+  if (offscreenX === 'left') {
+    if (offscreenY === 'none') {
+      // ◀
+      assign(tipArrowSymbolStyles, NORTH_TIP_ARROW_STYLES);
+      left += NORTH_TIP_ARROW_HEIGHT;
+      tipArrowStyles.transform = 'rotate(-90deg)';
+      tipArrowStyles.left = `0px`;
+      tipArrowStyles.top = `${Math.max(
+        NORTH_TIP_ARROW_WIDTH / 2 + tipArrowSafeOffset,
+        Math.min(
+          tipHeight - (NORTH_TIP_ARROW_WIDTH / 2 + tipArrowSafeOffset),
+          top - dims.top
+        )
+      )}px`;
+    } else if (offscreenY === 'top') {
+      // ◥
+      assign(tipArrowSymbolStyles, NORTHWEST_TIP_ARROW_STYLES);
+      left += NORTHWEST_TIP_ARROW_SIZE;
+      tipArrowStyles.transform = `rotate(90deg)`;
+      tipArrowStyles.left = `0px`;
+      tipArrowStyles.top = `${tipArrowSafeOffset}px`;
+    } else if (offscreenY === 'bottom') {
+      // ◢
+      left += NORTHWEST_TIP_ARROW_SIZE;
+      assign(tipArrowSymbolStyles, NORTHWEST_TIP_ARROW_STYLES);
+      tipArrowStyles.transform = `rotate(180deg)`;
+      tipArrowStyles.left = `0px`;
+      tipArrowStyles.bottom = `${tipArrowSafeOffset}px`;
+    }
+  } else if (offscreenX === 'right') {
+    if (offscreenY === 'none') {
+      // ▶
+      assign(tipArrowSymbolStyles, NORTH_TIP_ARROW_STYLES);
+      left -= NORTH_TIP_ARROW_HEIGHT;
+      tipArrowStyles.transform = 'rotate(90deg)';
+      tipArrowStyles.right = `0px`;
+      tipArrowStyles.top = `${Math.max(
+        NORTH_TIP_ARROW_WIDTH / 2 + tipArrowSafeOffset,
+        Math.min(
+          tipHeight - (NORTH_TIP_ARROW_WIDTH / 2 + tipArrowSafeOffset),
+          top - dims.top
+        )
+      )}px`;
+    } else if (offscreenY === 'top') {
+      // ◤
+      assign(tipArrowSymbolStyles, NORTHWEST_TIP_ARROW_STYLES);
+      left -= NORTHWEST_TIP_ARROW_SIZE;
+      tipArrowStyles.transform = `rotate(0deg)`;
+      tipArrowStyles.right = `0px`;
+      tipArrowStyles.top = `${tipArrowSafeOffset}px`;
+    } else if (offscreenY === 'bottom') {
+      // ◣
+      assign(tipArrowSymbolStyles, NORTHWEST_TIP_ARROW_STYLES);
+      left -= NORTHWEST_TIP_ARROW_SIZE;
+      tipArrowStyles.transform = `rotate(-90deg)`;
+      tipArrowStyles.right = `0px`;
+      tipArrowStyles.bottom = `${tipArrowSafeOffset}px`;
+    }
+  } else {
+    tipArrowStyles.left = `${Math.max(
+      NORTH_TIP_ARROW_WIDTH / 2 + tipArrowSafeOffset,
+      Math.min(
+        tipWidth - (NORTH_TIP_ARROW_WIDTH / 2 + tipArrowSafeOffset),
+        left - dims.left
+      )
+    )}px`;
+    if (offscreenY === 'none') {
+      // none
+      tipArrowStyles.display = 'none';
+    } else if (offscreenY === 'top') {
+      // ▲
+      assign(tipArrowSymbolStyles, NORTH_TIP_ARROW_STYLES);
+      top += NORTH_TIP_ARROW_HEIGHT;
+      tipArrowStyles.transform = 'rotate(0deg)';
+      tipArrowStyles.top = `0px`;
+    } else if (offscreenY === 'bottom') {
+      // ▼
+      assign(tipArrowSymbolStyles, NORTH_TIP_ARROW_STYLES);
+      top -= NORTH_TIP_ARROW_HEIGHT;
+      tipArrowStyles.transform = 'rotate(180deg)';
+      tipArrowStyles.bottom = `0px`;
+    }
+  }
+
   return {
-    style: { top, left },
+    tipStyles: {
+      top: top + 'px',
+      left: left + 'px',
+      width: tipWidth + 'px',
+      height: tipHeight + 'px',
+    },
+    tipArrowStyles,
+    tipArrowSymbolStyles,
   };
 }
 
