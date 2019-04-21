@@ -11,8 +11,10 @@ export const ElementTypeOtherOrUnknown = 8;
 export const ElementTypeProfiler = 9;
 export const ElementTypeRoot = 10;
 export const ElementTypeSuspense = 11;
+export const ElementTypeHostComponent = 12;
+export const ElementTypeHostText = 13;
 
 // Different types of elements displayed in the Elements tree.
 // These types may be used to visually distinguish types,
 // or to enable/disable certain functionality.
-export type ElementType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
+export type ElementType = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;

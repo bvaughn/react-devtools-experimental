@@ -228,6 +228,14 @@ function updateThemeVariables(
   updateStyleHelper(theme, 'color-commit-gradient-text', documentElements);
   updateStyleHelper(theme, 'color-component-name', documentElements);
   updateStyleHelper(theme, 'color-component-name-inverted', documentElements);
+  updateStyleHelper(theme, 'color-host-component-name', documentElements);
+  updateStyleHelper(
+    theme,
+    'color-host-component-name-inverted',
+    documentElements
+  );
+  updateStyleHelper(theme, 'color-host-text', documentElements);
+  updateStyleHelper(theme, 'color-host-text-inverted', documentElements);
   updateStyleHelper(theme, 'color-dim', documentElements);
   updateStyleHelper(theme, 'color-dimmer', documentElements);
   updateStyleHelper(theme, 'color-dimmest', documentElements);

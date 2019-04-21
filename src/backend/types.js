@@ -136,6 +136,7 @@ export type RendererInterface = {
   setTrackedPath: (path: Array<PathFrame> | null) => void,
   startProfiling: () => void,
   stopProfiling: () => void,
+  setShowNativeElements: (showNativeElements: boolean) => void,
 };
 
 export type Handler = (data: any) => void;

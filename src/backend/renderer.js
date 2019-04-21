@@ -13,12 +13,15 @@ import {
   ElementTypeProfiler,
   ElementTypeRoot,
   ElementTypeSuspense,
+  ElementTypeHostComponent,
+  ElementTypeHostText,
 } from 'src/devtools/types';
 import { getDisplayName, utfEncodeString } from '../utils';
 import { cleanForBridge, copyWithSet, setInObject } from './utils';
 import {
   __DEBUG__,
   LOCAL_STORAGE_RELOAD_AND_PROFILE_KEY,
+  LOCAL_STORAGE_SHOULD_SHOW_NATIVE_ELEMENTS_KEY,
   TREE_OPERATION_ADD,
   TREE_OPERATION_REMOVE,
   TREE_OPERATION_REORDER_CHILDREN,
@@ -237,6 +240,8 @@ export function attach(
     typeof setSuspenseHandler === 'function' &&
     typeof scheduleUpdate === 'function';
 
+  let isShowingNativeElements = false;
+
   const debug = (name: string, fiber: Fiber, parentFiber: ?Fiber): void => {
     if (__DEBUG__) {
       const fiberData = getDataForFiber(fiber);
@@ -281,11 +286,12 @@ export function attach(
         // https://github.com/bvaughn/react-devtools-experimental/issues/197
         return true;
       case EventComponent:
+        return true;
       case HostPortal:
       case HostComponent:
       case HostText:
       case Fragment:
-        return true;
+        return !isShowingNativeElements;
       default:
         const typeSymbol = getTypeSymbol(fiber.type);
 
@@ -398,13 +404,33 @@ export function attach(
           type: ElementTypeRoot,
         };
       case HostPortal:
-      case HostComponent:
-      case HostText:
-      case Fragment:
         return {
-          displayName: null,
+          displayName: 'React.Portal',
           key,
           type: ElementTypeOtherOrUnknown,
+        };
+      case Fragment:
+        return {
+          displayName: 'React.Fragment',
+          key,
+          type: ElementTypeOtherOrUnknown,
+        };
+      case HostComponent:
+        return {
+          displayName:
+            (fiber.stateNode != null && fiber.stateNode.nodeName != null
+              ? fiber.stateNode.nodeName.toLowerCase()
+              : null) || 'unknown',
+          key,
+          type: ElementTypeHostComponent,
+        };
+      case HostText:
+        return {
+          displayName:
+            (fiber.stateNode != null ? fiber.stateNode.textContent : null) ||
+            '',
+          key,
+          type: ElementTypeHostText,
         };
       case MemoComponent:
       case SimpleMemoComponent:
@@ -1639,6 +1665,8 @@ export function attach(
     const isTimedOutSuspense =
       tag === SuspenseComponent && memoizedState !== null;
 
+    const dataForFiber = getDataForFiber(fiber);
+
     return {
       id,
 
@@ -1659,7 +1687,9 @@ export function attach(
       // Can view component source location.
       canViewSource,
 
-      displayName: getDataForFiber(fiber).displayName,
+      type: dataForFiber.type,
+
+      displayName: dataForFiber.displayName,
 
       // Inspectable properties.
       // TODO Review sanitization approach for the below inspectable values.
@@ -1667,7 +1697,10 @@ export function attach(
       hooks: usesHooks
         ? inspectHooksOfFiber(fiber, (renderer.currentDispatcherRef: any))
         : null,
-      props: memoizedProps,
+      props:
+        dataForFiber.type === ElementTypeHostText
+          ? { children: memoizedProps }
+          : memoizedProps,
       state: usesHooks ? null : memoizedState,
 
       // List of owners
@@ -1700,11 +1733,20 @@ export function attach(
 
     const supportsGroup = typeof console.groupCollapsed === 'function';
     if (supportsGroup) {
-      console.groupCollapsed(
-        `[Click to expand] %c<${result.displayName || 'Component'} />`,
-        // --dom-tag-name-color is the CSS variable Chrome styles HTML elements with in the console.
-        'color: var(--dom-tag-name-color); font-weight: normal;'
-      );
+      if (result.type === ElementTypeHostText) {
+        console.groupCollapsed(
+          `[Click to expand] %c"%c${result.displayName || ''}%c"`,
+          'font-weight: bold; font-style: italic;',
+          'font-weight: normal; font-style: italic;',
+          'font-weight: bold; font-style: italic;'
+        );
+      } else {
+        console.groupCollapsed(
+          `[Click to expand] %c<${result.displayName || 'Component'} />`,
+          // --dom-tag-name-color is the CSS variable Chrome styles HTML elements with in the console.
+          'color: var(--dom-tag-name-color); font-weight: normal;'
+        );
+      }
     }
     if (result.props !== null) {
       console.log('Props:', result.props);
@@ -1987,6 +2029,18 @@ export function attach(
     startProfiling();
   }
 
+  function setShowNativeElements(showNativeElements: boolean) {
+    isShowingNativeElements = showNativeElements;
+  }
+
+  // Automatically set show native elements so that we don't miss these elements from initial "mount".
+  const isShowingNativeElementsFromStorage = localStorage.getItem(
+    LOCAL_STORAGE_SHOULD_SHOW_NATIVE_ELEMENTS_KEY
+  );
+  if (isShowingNativeElementsFromStorage != null) {
+    setShowNativeElements(isShowingNativeElementsFromStorage === 'true');
+  }
+
   // React will switch between these implementations depending on whether
   // we have any manually suspended Fibers or not.
 
@@ -2254,5 +2308,6 @@ export function attach(
     setTrackedPath,
     startProfiling,
     stopProfiling,
+    setShowNativeElements,
   };
 }

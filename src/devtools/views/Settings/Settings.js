@@ -2,14 +2,17 @@
 
 import React, { useCallback, useContext, useMemo } from 'react';
 import { useSubscription } from '../hooks';
-import { StoreContext } from '../context';
+import { BridgeContext, StoreContext } from '../context';
 import { SettingsContext } from './SettingsContext';
 import Store from 'src/devtools/store';
 import portaledContent from '../portaledContent';
+import Button from '../Button';
+import ButtonIcon from '../ButtonIcon';
 
 import styles from './Settings.css';
 
 function Settings(_: {||}) {
+  const bridge = useContext(BridgeContext);
   const store = useContext(StoreContext);
   const { displayDensity, setDisplayDensity, theme, setTheme } = useContext(
     SettingsContext
@@ -43,6 +46,20 @@ function Settings(_: {||}) {
     collapseNodesByDefaultSubscription
   );
 
+  const isShowingNativeElementsSubscription = useMemo(
+    () => ({
+      getCurrentValue: () => store.isShowingNativeElements,
+      subscribe: (callback: Function) => {
+        store.addListener('isShowingNativeElements', callback);
+        return () => store.removeListener('isShowingNativeElements', callback);
+      },
+    }),
+    [store]
+  );
+  const isShowingNativeElements = useSubscription<boolean, Store>(
+    isShowingNativeElementsSubscription
+  );
+
   const updateDisplayDensity = useCallback(
     ({ currentTarget }) => {
       setDisplayDensity(currentTarget.value);
@@ -68,6 +85,12 @@ function Settings(_: {||}) {
       store.collapseNodesByDefault = currentTarget.checked;
     },
     [store]
+  );
+
+  const reloadAndToggleShowNativeElements = useCallback(
+    () =>
+      bridge.send('reloadAndSetShowNativeElements', !isShowingNativeElements),
+    [bridge, isShowingNativeElements]
   );
 
   return (
@@ -117,6 +140,22 @@ function Settings(_: {||}) {
           />{' '}
           Collapse tree by default
         </label>
+      </div>
+      <div className={styles.Section}>
+        <div className={styles.Header} />
+        <div>
+          <Button
+            disabled={!store.supportsShowingNativeElements}
+            type="button"
+            onClick={reloadAndToggleShowNativeElements}
+            title=""
+          >
+            <ButtonIcon type="reload" />{' '}
+            {isShowingNativeElements
+              ? 'Reload with native elements hidden'
+              : 'Reload with native elements visible'}
+          </Button>
+        </div>
       </div>
       <div className={styles.Section}>
         <div className={styles.Header}>Display density</div>

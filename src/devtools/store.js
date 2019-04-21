@@ -47,6 +47,7 @@ type Config = {|
   supportsFileDownloads?: boolean,
   supportsReloadAndProfile?: boolean,
   supportsProfiling?: boolean,
+  supportsShowingNativeElements?: boolean,
 |};
 
 export type Capabilities = {|
@@ -102,6 +103,9 @@ export default class Store extends EventEmitter {
   // It's okay to use a single root to store this information because node IDs are unique across all roots.
   _profilingSnapshot: Map<number, ProfilingSnapshotNode> = new Map();
 
+  // The backend is currently sending native elements.
+  _isShowingNativeElements: boolean = false;
+
   // Incremented each time the store is mutated.
   // This enables a passive effect to detect a mutation between render and commit phase.
   _revision: number = 0;
@@ -121,6 +125,7 @@ export default class Store extends EventEmitter {
   _supportsFileDownloads: boolean = false;
   _supportsProfiling: boolean = false;
   _supportsReloadAndProfile: boolean = false;
+  _supportsShowingNativeElements: boolean = false;
 
   // Total number of visible elements (within all roots).
   // Used for windowing purposes.
@@ -145,6 +150,7 @@ export default class Store extends EventEmitter {
         supportsFileDownloads,
         supportsProfiling,
         supportsReloadAndProfile,
+        supportsShowingNativeElements,
       } = config;
       if (isProfiling) {
         this._isProfiling = true;
@@ -164,11 +170,18 @@ export default class Store extends EventEmitter {
       if (supportsReloadAndProfile) {
         this._supportsReloadAndProfile = true;
       }
+      if (supportsShowingNativeElements) {
+        this._supportsShowingNativeElements = true;
+      }
     }
 
     this._bridge = bridge;
     bridge.addListener('operations', this.onBridgeOperations);
     bridge.addListener('profilingStatus', this.onProfilingStatus);
+    bridge.addListener(
+      'showNativeElementsStatus',
+      this.onShowNativeElementsStatus
+    );
     bridge.addListener('screenshotCaptured', this.onScreenshotCaptured);
     bridge.addListener('shutdown', this.onBridgeShutdown);
 
@@ -177,6 +190,9 @@ export default class Store extends EventEmitter {
     bridge.send('getProfilingStatus');
 
     this._profilingCache = new ProfilingCache(bridge, this);
+
+    // Like with profiling, the show native elements source of truth is in the backend.
+    bridge.send('getShowNativeElementsStatus');
   }
 
   get captureScreenshots(): boolean {
@@ -234,6 +250,10 @@ export default class Store extends EventEmitter {
     return this._isProfiling;
   }
 
+  get isShowingNativeElements(): boolean {
+    return this._isShowingNativeElements;
+  }
+
   get numElements(): number {
     return this._weightAcrossRoots;
   }
@@ -276,6 +296,10 @@ export default class Store extends EventEmitter {
 
   get supportsReloadAndProfile(): boolean {
     return this._supportsReloadAndProfile;
+  }
+
+  get supportsShowingNativeElements(): boolean {
+    return this._supportsShowingNativeElements;
   }
 
   clearProfilingData(): void {
@@ -983,6 +1007,14 @@ export default class Store extends EventEmitter {
     }
   };
 
+  onShowNativeElementsStatus = (isShowingNativeElements: boolean) => {
+    if (this._isShowingNativeElements !== isShowingNativeElements) {
+      this._isShowingNativeElements = isShowingNativeElements;
+
+      this.emit('isShowingNativeElements');
+    }
+  };
+
   onScreenshotCaptured = ({
     commitIndex,
     dataURL,
@@ -1000,6 +1032,10 @@ export default class Store extends EventEmitter {
 
     this._bridge.removeListener('operations', this.onBridgeOperations);
     this._bridge.removeListener('profilingStatus', this.onProfilingStatus);
+    this._bridge.removeListener(
+      'showNativeElementsStatus',
+      this.onShowNativeElementsStatus
+    );
     this._bridge.removeListener('shutdown', this.onBridgeShutdown);
   };
 }

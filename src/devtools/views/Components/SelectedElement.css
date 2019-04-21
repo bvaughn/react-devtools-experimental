@@ -52,8 +52,39 @@
   color: var(--color-jsx-arrow-brackets);
 }
 
-.Component {
+.Component,
+.HostComponent,
+.HostText {
   flex: 1 1 auto;
+}
+
+.HostComponent {
+  color: var(--color-host-component-name);
+}
+.HostComponent:before {
+  white-space: nowrap;
+  content: '<';
+  color: var(--color-jsx-arrow-brackets);
+}
+.HostComponent:after {
+  white-space: nowrap;
+  content: '>';
+  color: var(--color-jsx-arrow-brackets);
+}
+
+.HostText {
+  white-space: pre-wrap;
+  color: var(--color-host-text);
+}
+.HostText:before {
+  white-space: nowrap;
+  content: '"';
+  color: var(--color-jsx-arrow-brackets);
+}
+.HostText:after {
+  white-space: nowrap;
+  content: '"';
+  color: var(--color-jsx-arrow-brackets);
 }
 
 .InspectedElement {

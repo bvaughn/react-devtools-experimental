@@ -40,6 +40,8 @@ export type InspectedElement = {|
 
   displayName: string | null,
 
+  type: ElementType,
+
   // Does the current renderer support editable hooks?
   canEditHooks: boolean,
 

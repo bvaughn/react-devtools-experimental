@@ -28,6 +28,8 @@
 
   /* Invert colors */
   --color-component-name: var(--color-component-name-inverted);
+  --color-host-component-name: var(--color-host-component-name-inverted);
+  --color-host-text: var(--color-host-text-inverted);
   --color-jsx-arrow-brackets: var(--color-jsx-arrow-brackets-inverted);
   --color-attribute-name: var(--color-background-hover);
   --color-attribute-value: var(--color-component-name-inverted);
@@ -49,6 +51,35 @@
 .Component:after {
   white-space: nowrap;
   content: '>';
+  color: var(--color-jsx-arrow-brackets);
+}
+
+.HostComponent {
+  color: var(--color-host-component-name);
+}
+.HostComponent:before {
+  white-space: nowrap;
+  content: '<';
+  color: var(--color-jsx-arrow-brackets);
+}
+.HostComponent:after {
+  white-space: nowrap;
+  content: '>';
+  color: var(--color-jsx-arrow-brackets);
+}
+
+.HostText {
+  white-space: pre-wrap;
+  color: var(--color-host-text);
+}
+.HostText:before {
+  white-space: nowrap;
+  content: '"';
+  color: var(--color-jsx-arrow-brackets);
+}
+.HostText:after {
+  white-space: nowrap;
+  content: '"';
   color: var(--color-jsx-arrow-brackets);
 }
 

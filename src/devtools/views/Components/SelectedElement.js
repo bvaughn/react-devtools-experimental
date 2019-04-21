@@ -16,6 +16,8 @@ import {
   ElementTypeFunction,
   ElementTypeMemo,
   ElementTypeSuspense,
+  ElementTypeHostComponent,
+  ElementTypeHostText,
 } from '../../types';
 
 import type { Element, InspectedElement } from './types';
@@ -85,11 +87,22 @@ export default function SelectedElement(_: Props) {
     inspectedElement.canViewSource &&
     viewElementSource !== null;
 
+  const { type } = element;
+
   return (
     <div className={styles.SelectedElement}>
       <div className={styles.TitleRow}>
         <div className={styles.SelectedComponentName}>
-          <div className={styles.Component} title={element.displayName}>
+          <div
+            className={
+              type === ElementTypeHostComponent
+                ? styles.HostComponent
+                : type === ElementTypeHostText
+                ? styles.HostText
+                : styles.Component
+            }
+            title={element.displayName}
+          >
             {element.displayName}
           </div>
         </div>
@@ -198,12 +211,21 @@ function InspectedElementView({
 
   return (
     <div className={styles.InspectedElement}>
-      <InspectedElementTree
-        label="props"
-        data={props}
-        overrideValueFn={overridePropsFn}
-        showWhenEmpty
-      />
+      {type === ElementTypeHostText ? (
+        <InspectedElementTree
+          label="text"
+          data={props}
+          overrideValueFn={null}
+          showWhenEmpty
+        />
+      ) : (
+        <InspectedElementTree
+          label="props"
+          data={props}
+          overrideValueFn={overridePropsFn}
+          showWhenEmpty
+        />
+      )}
       {type === ElementTypeSuspense ? (
         <InspectedElementTree
           label="suspense"

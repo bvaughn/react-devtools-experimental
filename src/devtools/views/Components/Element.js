@@ -9,7 +9,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ElementTypeClass, ElementTypeFunction } from 'src/devtools/types';
+import {
+  ElementTypeClass,
+  ElementTypeFunction,
+  ElementTypeHostComponent,
+  ElementTypeHostText,
+} from 'src/devtools/types';
 import Store from 'src/devtools/store';
 import ButtonIcon from '../ButtonIcon';
 import { createRegExp } from '../utils';
@@ -171,7 +176,15 @@ export default function ElementView({ data, index, style }: Props) {
       {ownerStack.length === 0 ? (
         <ExpandCollapseToggle element={element} store={store} />
       ) : null}
-      <span className={styles.Component}>
+      <span
+        className={
+          type === ElementTypeHostComponent
+            ? styles.HostComponent
+            : type === ElementTypeHostText
+            ? styles.HostText
+            : styles.Component
+        }
+      >
         <DisplayName displayName={displayName} id={((id: any): number)} />
         {key && (
           <Fragment>

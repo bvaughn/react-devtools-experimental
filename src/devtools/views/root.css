@@ -33,6 +33,10 @@
   --light-color-commit-gradient-text: #000000;
   --light-color-component-name: #6a51b2;
   --light-color-component-name-inverted: #ffffff;
+  --light-color-host-component-name: #881280;
+  --light-color-host-component-name-inverted: #ffffff;
+  --light-color-host-text: #303942;
+  --light-color-host-text-inverted: rgba(255, 255, 255, 0.7);
   --light-color-dim: #777d88;
   --light-color-dimmer: #cfd1d5;
   --light-color-dimmest: #eff0f1;
@@ -80,7 +84,11 @@
   --dark-color-commit-gradient-9: #febc38;
   --dark-color-commit-gradient-text: #000000;
   --dark-color-component-name: #61dafb;
-  --dark-color-component-name-inverted: ##282828;
+  --dark-color-component-name-inverted: #282c34;
+  --dark-color-host-component-name: #53ffc2;
+  --dark-color-host-component-name-inverted: #282c34;
+  --dark-color-host-text: #cfd0d0;
+  --dark-color-host-text-inverted: #cfd0d0;
   --dark-color-dim: #8f949d;
   --dark-color-dimmer: #777d88;
   --dark-color-dimmest: #4f5766;

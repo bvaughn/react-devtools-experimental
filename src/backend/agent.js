@@ -5,6 +5,7 @@ import memoize from 'memoize-one';
 import throttle from 'lodash.throttle';
 import {
   LOCAL_STORAGE_RELOAD_AND_PROFILE_KEY,
+  LOCAL_STORAGE_SHOULD_SHOW_NATIVE_ELEMENTS_KEY,
   SESSION_STORAGE_LAST_SELECTION_KEY,
   __DEBUG__,
 } from '../constants';
@@ -63,6 +64,7 @@ type PersistedSelection = {|
 export default class Agent extends EventEmitter {
   _bridge: Bridge = ((null: any): Bridge);
   _isProfiling: boolean = false;
+  _isShowingNativeElements: boolean = false;
   _rendererInterfaces: { [key: RendererID]: RendererInterface } = {};
   _persistedSelection: PersistedSelection | null = null;
   _persistedSelectionMatch: PathMatch | null = null;
@@ -83,6 +85,16 @@ export default class Agent extends EventEmitter {
       if (persistedSelectionString != null) {
         this._persistedSelection = JSON.parse(persistedSelectionString);
       }
+    }
+
+    const isShowingNativeElementsFromStorage = localStorage.getItem(
+      LOCAL_STORAGE_SHOULD_SHOW_NATIVE_ELEMENTS_KEY
+    );
+    if (isShowingNativeElementsFromStorage != null) {
+      this._isShowingNativeElements =
+        isShowingNativeElementsFromStorage === 'true';
+
+      // Do not remove from storage because the setting must persist.
     }
   }
 
@@ -119,11 +131,23 @@ export default class Agent extends EventEmitter {
       'syncSelectionFromNativeElementsPanel',
       this.syncSelectionFromNativeElementsPanel
     );
+    bridge.addListener(
+      'getShowNativeElementsStatus',
+      this.getShowNativeElementsStatus
+    );
+    bridge.addListener(
+      'reloadAndSetShowNativeElements',
+      this.reloadAndSetShowNativeElements
+    );
     bridge.addListener('shutdown', this.shutdown);
     bridge.addListener('viewElementSource', this.viewElementSource);
 
     if (this._isProfiling) {
       this._bridge.send('profilingStatus', true);
+    }
+
+    if (this._isShowingNativeElements) {
+      this._bridge.send('showNativeElementsStatus', true);
     }
   }
 
@@ -427,6 +451,10 @@ export default class Agent extends EventEmitter {
       rendererInterface.startProfiling();
     }
 
+    if (this._isShowingNativeElements) {
+      rendererInterface.setShowNativeElements(this._isShowingNativeElements);
+    }
+
     // When the renderer is attached, we need to tell it whether
     // we remember the previous selection that we'd like to restore.
     // It'll start tracking mounts for matches to the last selection path.
@@ -489,6 +517,22 @@ export default class Agent extends EventEmitter {
       renderer.stopProfiling();
     }
     this._bridge.send('profilingStatus', this._isProfiling);
+  };
+
+  getShowNativeElementsStatus = () => {
+    this._bridge.send(
+      'showNativeElementsStatus',
+      this._isShowingNativeElements
+    );
+  };
+
+  reloadAndSetShowNativeElements = (showNativeElements: boolean) => {
+    localStorage.setItem(
+      LOCAL_STORAGE_SHOULD_SHOW_NATIVE_ELEMENTS_KEY,
+      showNativeElements === true ? 'true' : 'false'
+    );
+
+    this._bridge.send('reloadAppForShowNativeElements');
   };
 
   viewElementSource = ({ id, rendererID }: InspectSelectParams) => {

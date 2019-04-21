@@ -68,6 +68,9 @@ function createPanelIfReactLoaded() {
           localStorage.setItem(LOCAL_STORAGE_SUPPORTS_PROFILING_KEY, 'true');
           chrome.devtools.inspectedWindow.eval('window.location.reload();');
         });
+        bridge.addListener('reloadAppForShowNativeElements', () => {
+          chrome.devtools.inspectedWindow.eval('window.location.reload();');
+        });
         bridge.addListener('exportFile', ({ contents, filename }) => {
           chrome.runtime.sendMessage({
             exportFile: true,
@@ -109,6 +112,7 @@ function createPanelIfReactLoaded() {
           supportsFileDownloads: browserName === 'Chrome',
           supportsReloadAndProfile: true,
           supportsProfiling,
+          supportsShowingNativeElements: true,
         });
 
         // Initialize the backend only once the Store has been initialized.
