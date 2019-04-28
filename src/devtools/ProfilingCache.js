@@ -208,13 +208,10 @@ export default class ProfilingCache {
       return new Promise(resolve => {
         const importedProfilingData = this._store.importedProfilingData;
         if (importedProfilingData !== null) {
-          const { profilingSummary } = (importedProfilingData: any);
-          if (profilingSummary != null) {
-            this._pendingProfileSummaryMap.set(
-              profilingSummary.rootID,
-              resolve
-            );
-            this.onProfileSummary(profilingSummary);
+          const profilingSummaryFrontend =
+            importedProfilingData.profilingSummary;
+          if (profilingSummaryFrontend != null) {
+            resolve(profilingSummaryFrontend);
             return;
           }
         } else if (this._store.profilingOperations.has(rootID)) {
@@ -365,32 +362,42 @@ export default class ProfilingCache {
     }
   };
 
-  onProfileSummary = ({
+  onProfileSummary = (profilingSummaryBackend: ProfilingSummaryBackend) => {
+    const { rootID } = profilingSummaryBackend;
+    const resolve = this._pendingProfileSummaryMap.get(rootID);
+    if (resolve != null) {
+      this._pendingProfileSummaryMap.delete(rootID);
+
+      resolve(
+        convertProfilingSummaryFromBackendToFrontend(profilingSummaryBackend)
+      );
+    }
+  };
+}
+
+function convertProfilingSummaryFromBackendToFrontend(
+  profilingSummaryBackend: ProfilingSummaryBackend
+): ProfilingSummaryFrontend {
+  const {
     commitDurations,
     commitTimes,
     initialTreeBaseDurations,
     interactionCount,
     rootID,
-  }: ProfilingSummaryBackend) => {
-    const resolve = this._pendingProfileSummaryMap.get(rootID);
-    if (resolve != null) {
-      this._pendingProfileSummaryMap.delete(rootID);
-
-      const initialTreeBaseDurationsMap = new Map();
-      for (let i = 0; i < initialTreeBaseDurations.length; i += 2) {
-        initialTreeBaseDurationsMap.set(
-          initialTreeBaseDurations[i],
-          initialTreeBaseDurations[i + 1]
-        );
-      }
-
-      resolve({
-        rootID,
-        commitDurations,
-        commitTimes,
-        initialTreeBaseDurations: initialTreeBaseDurationsMap,
-        interactionCount,
-      });
-    }
+  } = profilingSummaryBackend;
+  const initialTreeBaseDurationsMap = new Map();
+  for (let i = 0; i < initialTreeBaseDurations.length; i += 2) {
+    initialTreeBaseDurationsMap.set(
+      initialTreeBaseDurations[i],
+      initialTreeBaseDurations[i + 1]
+    );
+  }
+  const profilingSummaryFrontend: ProfilingSummaryFrontend = {
+    commitDurations,
+    commitTimes,
+    initialTreeBaseDurations: initialTreeBaseDurationsMap,
+    interactionCount,
+    rootID,
   };
+  return profilingSummaryFrontend;
 }
