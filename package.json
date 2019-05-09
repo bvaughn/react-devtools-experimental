@@ -100,6 +100,7 @@
     "eslint-config-react-app": "^2.1.0",
     "eslint-config-standard": "^11.0.0",
     "eslint-config-standard-react": "^6.0.0",
+    "eslint-loader": "^2.1.2",
     "eslint-plugin-flowtype": "^2.47.1",
     "eslint-plugin-import": "^2.11.0",
     "eslint-plugin-jsx-a11y": "^5",

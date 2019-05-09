@@ -30,6 +30,9 @@ const config = {
   resolve: {
     alias: {
       src: resolve(__dirname, '../../src'),
+      'react-dom': __DEV__
+        ? resolve('../../vendor/react-dom/react-dom.hot.development')
+        : 'react-dom',
     },
   },
   plugins: [
@@ -41,6 +44,15 @@ const config = {
   ],
   module: {
     rules: [
+      {
+        test: /\.js$/,
+        enforce: 'pre',
+        loader: 'eslint-loader',
+        include: resolve(__dirname, '../../src'),
+        options: {
+          quiet: true,
+        },
+      },
       {
         test: /\.js$/,
         loader: 'babel-loader',
@@ -69,12 +81,16 @@ const config = {
 };
 
 if (TARGET === 'local') {
+  config.output = {
+    publicPath: '/dist/',
+  };
   config.devServer = {
     hot: true,
     port: 8080,
     clientLogLevel: 'warning',
-    publicPath: '/dist/',
     stats: 'errors-only',
+    overlay: true,
+    publicPath: '/dist/',
   };
 } else {
   config.output = {

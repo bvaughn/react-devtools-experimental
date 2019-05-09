@@ -1,5 +1,5 @@
 {
-  "extends": ["react-app","plugin:prettier/recommended"],
+  "extends": ["react-app"],
   "plugins": ["react-hooks"],
   "rules": {
     "jsx-a11y/anchor-has-content": "off",
