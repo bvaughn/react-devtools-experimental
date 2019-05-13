@@ -2,7 +2,21 @@
 
 import { PROFILER_EXPORT_VERSION } from 'src/constants';
 
-import type { ProfilingSnapshotNode } from './types';
+import type {
+  CommitDetailsFrontend,
+  ExportedProfilingSummaryFromFrontend,
+  ExportedProfilingData,
+  ExportedProfilingDataCommitDetails,
+  ExportedProfilingDataOperationsByRootID,
+  ExportedProfilingDataProfilingSummary,
+  ExportedProfilingDataSnapshotsByRootID,
+  ImportedProfilingData,
+  InteractionsFrontend,
+  ProfilingSnapshotNode,
+  ProfilingSummaryFrontend,
+} from './types';
+
+import type { ExportedProfilingDataFromRenderer } from 'src/backend/types';
 
 const commitGradient = [
   'var(--color-commit-gradient-0)',
@@ -17,7 +31,7 @@ const commitGradient = [
   'var(--color-commit-gradient-9)',
 ];
 
-export const prepareProfilingExport = (
+export const prepareExportedProfilingSummary = (
   profilingOperations: Map<number, Array<Uint32Array>>,
   profilingSnapshots: Map<number, Map<number, ProfilingSnapshotNode>>,
   rendererID: number,
@@ -26,45 +40,158 @@ export const prepareProfilingExport = (
   const profilingOperationsForRoot = [];
   const operations = profilingOperations.get(rootID);
   if (operations != null) {
-    operations.forEach(operations => {
-      // Convert typed Array before JSON serialization, or it will be converted to an Object.
-      profilingOperationsForRoot.push(Array.from<number>(operations));
+    operations.forEach(operationsTypedArray => {
+      // Convert typed array to plain array before JSON serialization, or it will be converted to an Object.
+      const operationsPlainArray = Array.from(operationsTypedArray);
+      profilingOperationsForRoot.push(operationsPlainArray);
     });
   }
 
   // Convert Map to Object or JSON.stringify will clobber the contents.
-  const profilingSnapshotsForRoot = {};
+  const profilingSnapshotsForRoot = [];
   const profilingSnapshotsMap = profilingSnapshots.get(rootID);
   if (profilingSnapshotsMap != null) {
     for (let [id, snapshot] of profilingSnapshotsMap.entries()) {
-      profilingSnapshotsForRoot[id] = snapshot;
+      profilingSnapshotsForRoot.push([id, snapshot]);
     }
   }
 
-  return {
-    profilingOperations: profilingOperationsForRoot,
-    profilingSnapshots: profilingSnapshotsForRoot,
+  const exportedProfilingSummary: ExportedProfilingSummaryFromFrontend = {
+    version: PROFILER_EXPORT_VERSION,
+    profilingOperationsByRootID: [[rootID, profilingOperationsForRoot]],
+    profilingSnapshotsByRootID: [[rootID, profilingSnapshotsForRoot]],
     rendererID,
     rootID,
   };
+  return exportedProfilingSummary;
 };
 
-export const prepareProfilingImport = (raw: string) => {
-  const parsed = JSON.parse(raw);
+export const prepareExportedProfilingData = (
+  exportedProfilingDataFromRenderer: ExportedProfilingDataFromRenderer,
+  exportedProfilingSummary: ExportedProfilingSummaryFromFrontend
+): ExportedProfilingData => {
+  if (exportedProfilingDataFromRenderer.version !== PROFILER_EXPORT_VERSION) {
+    throw new Error(
+      `Unsupported profiling data version ${
+        exportedProfilingDataFromRenderer.version
+      } from renderer with id "${exportedProfilingSummary.rendererID}"`
+    );
+  }
+  if (exportedProfilingSummary.version !== PROFILER_EXPORT_VERSION) {
+    throw new Error(
+      `Unsupported profiling summary version ${
+        exportedProfilingSummary.version
+      } from renderer with id "${exportedProfilingSummary.rendererID}"`
+    );
+  }
+  const exportedProfilingData: ExportedProfilingData = {
+    version: PROFILER_EXPORT_VERSION,
+    profilingSummary: exportedProfilingDataFromRenderer.profilingSummary,
+    commitDetails: exportedProfilingDataFromRenderer.commitDetails,
+    interactions: exportedProfilingDataFromRenderer.interactions,
+    profilingOperationsByRootID:
+      exportedProfilingSummary.profilingOperationsByRootID,
+    profilingSnapshotsByRootID:
+      exportedProfilingSummary.profilingSnapshotsByRootID,
+  };
+  return exportedProfilingData;
+};
+
+/**
+ * This function should mirror `prepareExportedProfilingData` and `prepareExportedProfilingSummary`.
+ */
+export const prepareImportedProfilingData = (
+  exportedProfilingDataJsonString: string
+) => {
+  const parsed = JSON.parse(exportedProfilingDataJsonString);
 
   if (parsed.version !== PROFILER_EXPORT_VERSION) {
     throw Error(`Unsupported profiler export version "${parsed.version}".`);
   }
 
-  const entries = [];
-  Object.values(parsed.profilingSnapshots).forEach(snapshot => {
-    entries.push([(snapshot: any).id, snapshot]);
-  });
+  // Some "exported" types in `parsed` are `...Backend`, see `prepareExportedProfilingData`,
+  // they come to `ExportedProfilingData` from `ExportedProfilingDataFromRenderer`.
+  // But the "imported" types in `ImportedProfilingData` are `...Frontend`,
+  // and some of them aren't exactly the same as `...Backend` (i.e. an interleaved array versus a map).
+  // The correct type annotations here help us to spot the incompatibilities and properly convert.
 
-  const rootID = parsed.profilingSummary.rootID;
-  parsed.profilingOperations = new Map([[rootID, parsed.profilingOperations]]);
-  parsed.profilingSnapshots = new Map([[rootID, new Map(entries)]]);
-  return parsed;
+  const profilingOperationsExported: ExportedProfilingDataOperationsByRootID =
+    parsed.profilingOperationsByRootID;
+  const profilingSnapshotsExported: ExportedProfilingDataSnapshotsByRootID =
+    parsed.profilingSnapshotsByRootID;
+  const profilingSummaryExported: ExportedProfilingDataProfilingSummary =
+    parsed.profilingSummary;
+  const commitDetailsExported: ExportedProfilingDataCommitDetails =
+    parsed.commitDetails;
+  const interactionsExported: InteractionsFrontend = parsed.interactions;
+
+  const profilingOperationsImported: Map<number, Array<Uint32Array>> = new Map(
+    profilingOperationsExported.map(([rootID, profilingOperationsForRoot]) => [
+      rootID,
+      profilingOperationsForRoot.map(operations =>
+        Uint32Array.from(operations)
+      ),
+    ])
+  );
+  const profilingSnapshotsImported: Map<
+    number,
+    Map<number, ProfilingSnapshotNode>
+  > = new Map(
+    profilingSnapshotsExported.map(([rootID, profilingSnapshotsForRoot]) => [
+      rootID,
+      new Map(profilingSnapshotsForRoot),
+    ])
+  );
+
+  const initialTreeBaseDurationsMap = new Map();
+  {
+    const { initialTreeBaseDurations } = profilingSummaryExported;
+    for (let i = 0; i < initialTreeBaseDurations.length; i += 2) {
+      initialTreeBaseDurationsMap.set(
+        initialTreeBaseDurations[i],
+        initialTreeBaseDurations[i + 1]
+      );
+    }
+  }
+
+  const profilingSummaryImported: ProfilingSummaryFrontend = {
+    rootID: profilingSummaryExported.rootID,
+    commitDurations: profilingSummaryExported.commitDurations,
+    commitTimes: profilingSummaryExported.commitTimes,
+    initialTreeBaseDurations: initialTreeBaseDurationsMap,
+    interactionCount: profilingSummaryExported.interactionCount,
+  };
+
+  const commitDetailsImported: Array<CommitDetailsFrontend> = commitDetailsExported.map(
+    commitDetailsBackendItem => {
+      const actualDurationsMap = new Map<number, number>();
+      const selfDurationsMap = new Map<number, number>();
+      for (let i = 0; i < commitDetailsBackendItem.durations.length; i += 3) {
+        const id = commitDetailsBackendItem.durations[i];
+        actualDurationsMap.set(id, commitDetailsBackendItem.durations[i + 1]);
+        selfDurationsMap.set(id, commitDetailsBackendItem.durations[i + 2]);
+      }
+
+      return {
+        actualDurations: actualDurationsMap,
+        commitIndex: commitDetailsBackendItem.commitIndex,
+        interactions: commitDetailsBackendItem.interactions,
+        rootID: commitDetailsBackendItem.rootID,
+        selfDurations: selfDurationsMap,
+      };
+    }
+  );
+  const interactionsImported: InteractionsFrontend = interactionsExported;
+
+  const importedProfilingData: ImportedProfilingData = {
+    version: parsed.version,
+    profilingOperations: profilingOperationsImported,
+    profilingSnapshots: profilingSnapshotsImported,
+    commitDetails: commitDetailsImported,
+    interactions: interactionsImported,
+    profilingSummary: profilingSummaryImported,
+  };
+  return importedProfilingData;
 };
 
 export const getGradientColor = (value: number) => {

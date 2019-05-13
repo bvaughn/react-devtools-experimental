@@ -20,7 +20,6 @@ import {
 } from 'src/devtools/views/Profiler/RankedChartBuilder';
 
 import type { Resource } from './cache';
-import type { Bridge } from '../types';
 import type {
   CommitDetailsBackend,
   FiberCommitsBackend,
@@ -38,6 +37,7 @@ import type {
 import type { ChartData as FlamegraphChartData } from 'src/devtools/views/Profiler/FlamegraphChartBuilder';
 import type { ChartData as InteractionsChartData } from 'src/devtools/views/Profiler/InteractionsChartBuilder';
 import type { ChartData as RankedChartData } from 'src/devtools/views/Profiler/RankedChartBuilder';
+import type { Bridge } from 'src/types';
 
 type CommitDetailsParams = {|
   commitIndex: number,
@@ -97,23 +97,24 @@ export default class ProfilingCache {
   > = createResource(
     ({ commitIndex, rendererID, rootID }: CommitDetailsParams) => {
       return new Promise(resolve => {
+        const pendingKey = `${rootID}-${commitIndex}`;
         const importedProfilingData = this._store.importedProfilingData;
         if (importedProfilingData !== null) {
-          const { commitDetails } = (importedProfilingData: any);
-          if (commitDetails != null && commitIndex < commitDetails.length) {
-            const response = commitDetails[commitIndex];
-            this._pendingCommitDetailsMap.set(
-              `${response.rootID}-${commitIndex}`,
-              resolve
-            );
-            this.onCommitDetails(response);
-            return;
+          const commitDetailsByCommitIndex =
+            importedProfilingData.commitDetails;
+          if (
+            commitDetailsByCommitIndex != null &&
+            commitIndex < commitDetailsByCommitIndex.length
+          ) {
+            const commitDetails = commitDetailsByCommitIndex[commitIndex];
+            if (commitDetails.rootID === rootID) {
+              this._pendingCommitDetailsMap.delete(pendingKey);
+              resolve(commitDetails);
+              return;
+            }
           }
         } else if (this._store.profilingOperations.has(rootID)) {
-          this._pendingCommitDetailsMap.set(
-            `${rootID}-${commitIndex}`,
-            resolve
-          );
+          this._pendingCommitDetailsMap.set(pendingKey, resolve);
           this._bridge.send('getCommitDetails', {
             commitIndex,
             rendererID,
@@ -123,6 +124,7 @@ export default class ProfilingCache {
         }
 
         // If no profiling data was recorded for this root, skip the round trip.
+        this._pendingCommitDetailsMap.delete(pendingKey);
         resolve({
           rootID,
           commitIndex,
@@ -141,19 +143,18 @@ export default class ProfilingCache {
     string,
     FiberCommitsFrontend
   > = createResource(
-    ({ fiberID, rendererID, rootID }: FiberCommitsParams) => {
-      return new Promise(resolve => {
+    ({ fiberID, rendererID, rootID }: FiberCommitsParams) =>
+      new Promise(resolve => {
+        const pendingKey = `${rootID}-${fiberID}`;
         const importedProfilingData = this._store.importedProfilingData;
         if (importedProfilingData !== null) {
           const { commitDetails } = (importedProfilingData: any);
           if (commitDetails != null) {
             const commitDurations = [];
-            commitDetails.forEach(({ durations }, commitIndex) => {
-              for (let i = 0; i < durations.length; i += 3) {
-                if (durations[i] === fiberID) {
-                  commitDurations.push(commitIndex, durations[i + 2]);
-                  break;
-                }
+            commitDetails.forEach(({ selfDurations }, commitIndex) => {
+              const selfDuration = selfDurations.get(fiberID);
+              if (selfDuration != null) {
+                commitDurations.push(commitIndex, selfDuration);
               }
             });
             this._pendingFiberCommitsMap.set(`${rootID}-${fiberID}`, resolve);
@@ -165,7 +166,7 @@ export default class ProfilingCache {
             return;
           }
         } else if (this._store.profilingOperations.has(rootID)) {
-          this._pendingFiberCommitsMap.set(`${rootID}-${fiberID}`, resolve);
+          this._pendingFiberCommitsMap.set(pendingKey, resolve);
           this._bridge.send('getFiberCommits', {
             fiberID,
             rendererID,
@@ -175,13 +176,13 @@ export default class ProfilingCache {
         }
 
         // If no profiling data was recorded for this root, skip the round trip.
+        this._pendingFiberCommitsMap.delete(pendingKey);
         resolve({
           commitDurations: [],
           fiberID,
           rootID,
         });
-      });
-    },
+      }),
     ({ fiberID, rendererID, rootID }: FiberCommitsParams) =>
       `${rootID}-${fiberID}`
   );
@@ -193,16 +194,21 @@ export default class ProfilingCache {
   > = createResource(
     ({ rendererID, rootID }: InteractionsParams) => {
       return new Promise(resolve => {
+        const pendingKey = rootID;
         const importedProfilingData = this._store.importedProfilingData;
         if (importedProfilingData !== null) {
-          const { interactions } = (importedProfilingData: any);
-          if (interactions != null) {
-            this._pendingInteractionsMap.set(interactions.rootID, resolve);
-            this.onInteractions(interactions);
+          const interactionsFrontend: InteractionsFrontend =
+            importedProfilingData.interactions;
+          if (
+            interactionsFrontend != null &&
+            interactionsFrontend.rootID === rootID
+          ) {
+            this._pendingInteractionsMap.delete(pendingKey);
+            resolve(interactionsFrontend);
             return;
           }
         } else if (this._store.profilingOperations.has(rootID)) {
-          this._pendingInteractionsMap.set(rootID, resolve);
+          this._pendingInteractionsMap.set(pendingKey, resolve);
           this._bridge.send('getInteractions', {
             rendererID,
             rootID,
@@ -211,7 +217,12 @@ export default class ProfilingCache {
         }
 
         // If no profiling data was recorded for this root, skip the round trip.
-        resolve([]);
+        this._pendingInteractionsMap.delete(pendingKey);
+        const interactionsFrontend: InteractionsFrontend = {
+          interactions: [],
+          rootID,
+        };
+        resolve(interactionsFrontend);
       });
     },
     ({ rendererID, rootID }: ProfilingSummaryParams) => rootID
@@ -226,13 +237,14 @@ export default class ProfilingCache {
       return new Promise(resolve => {
         const importedProfilingData = this._store.importedProfilingData;
         if (importedProfilingData !== null) {
-          const { profilingSummary } = (importedProfilingData: any);
-          if (profilingSummary != null) {
-            this._pendingProfileSummaryMap.set(
-              profilingSummary.rootID,
-              resolve
-            );
-            this.onProfileSummary(profilingSummary);
+          const profilingSummaryFrontend: ProfilingSummaryFrontend =
+            importedProfilingData.profilingSummary;
+          if (
+            profilingSummaryFrontend != null &&
+            profilingSummaryFrontend.rootID === rootID
+          ) {
+            this._pendingProfileSummaryMap.delete(rootID);
+            resolve(profilingSummaryFrontend);
             return;
           }
         } else if (this._store.profilingOperations.has(rootID)) {
@@ -242,13 +254,15 @@ export default class ProfilingCache {
         }
 
         // If no profiling data was recorded for this root, skip the round trip.
-        resolve({
+        this._pendingProfileSummaryMap.delete(rootID);
+        const profilingSummaryFrontend: ProfilingSummaryFrontend = {
           rootID,
           commitDurations: [],
           commitTimes: [],
           initialTreeBaseDurations: new Map(),
           interactionCount: 0,
-        });
+        };
+        resolve(profilingSummaryFrontend);
       });
     },
     ({ rendererID, rootID }: ProfilingSummaryParams) => rootID
@@ -289,7 +303,6 @@ export default class ProfilingCache {
   getInteractionsChartData = ({
     interactions,
     profilingSummary,
-    rootID,
   }: {|
     interactions: Array<InteractionWithCommitsFrontend>,
     profilingSummary: ProfilingSummaryFrontend,
@@ -342,21 +355,23 @@ export default class ProfilingCache {
     if (resolve != null) {
       this._pendingCommitDetailsMap.delete(key);
 
-      const actualDurationsMap = new Map();
-      const selfDurationsMap = new Map();
+      const actualDurationsMap = new Map<number, number>();
+      const selfDurationsMap = new Map<number, number>();
       for (let i = 0; i < durations.length; i += 3) {
-        const id = durations[i];
-        actualDurationsMap.set(id, durations[i + 1]);
-        selfDurationsMap.set(id, durations[i + 2]);
+        const fiberID = durations[i];
+        actualDurationsMap.set(fiberID, durations[i + 1]);
+        selfDurationsMap.set(fiberID, durations[i + 2]);
       }
 
-      resolve({
-        rootID,
-        commitIndex,
-        actualDurations: actualDurationsMap,
-        selfDurations: selfDurationsMap,
-        interactions,
-      });
+      resolve(
+        ({
+          actualDurations: actualDurationsMap,
+          commitIndex,
+          interactions,
+          rootID,
+          selfDurations: selfDurationsMap,
+        }: CommitDetailsFrontend)
+      );
     }
   };
 
@@ -370,11 +385,13 @@ export default class ProfilingCache {
     if (resolve != null) {
       this._pendingFiberCommitsMap.delete(key);
 
-      resolve({
-        commitDurations,
-        fiberID,
-        rootID,
-      });
+      resolve(
+        ({
+          commitDurations,
+          fiberID,
+          rootID,
+        }: FiberCommitsFrontend)
+      );
     }
   };
 
@@ -383,7 +400,12 @@ export default class ProfilingCache {
     if (resolve != null) {
       this._pendingInteractionsMap.delete(rootID);
 
-      resolve(interactions);
+      resolve(
+        ({
+          interactions,
+          rootID,
+        }: InteractionsFrontend)
+      );
     }
   };
 
@@ -406,13 +428,15 @@ export default class ProfilingCache {
         );
       }
 
-      resolve({
-        rootID,
-        commitDurations,
-        commitTimes,
-        initialTreeBaseDurations: initialTreeBaseDurationsMap,
-        interactionCount,
-      });
+      resolve(
+        ({
+          commitDurations,
+          commitTimes,
+          initialTreeBaseDurations: initialTreeBaseDurationsMap,
+          interactionCount,
+          rootID,
+        }: ProfilingSummaryFrontend)
+      );
     }
   };
 }

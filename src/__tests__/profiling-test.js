@@ -16,17 +16,19 @@ describe('profiling', () => {
 
   const exportImportHelper = (rendererID: number, rootID: number) => {
     const {
-      prepareProfilingExport,
-      prepareProfilingImport,
+      prepareExportedProfilingSummary,
+      prepareImportedProfilingData,
     } = require('src/devtools/views/Profiler/utils');
 
-    let exportedProfilingSummary;
+    let exportedProfilingDataJsonString = '';
     bridge.addListener('exportFile', ({ contents }) => {
-      exportedProfilingSummary = contents;
+      if (typeof contents === 'string') {
+        exportedProfilingDataJsonString = (contents: string);
+      }
     });
 
     utils.act(() => {
-      const exportProfilingSummary = prepareProfilingExport(
+      const exportProfilingSummary = prepareExportedProfilingSummary(
         store.profilingOperations,
         store.profilingSnapshots,
         rootID,
@@ -35,22 +37,25 @@ describe('profiling', () => {
       bridge.send('exportProfilingSummary', exportProfilingSummary);
     });
 
-    expect(exportedProfilingSummary).toBeDefined();
+    expect(typeof exportedProfilingDataJsonString).toBe('string');
+    expect(exportedProfilingDataJsonString).not.toBe('');
 
-    const importedProfilingSummary = prepareProfilingImport(
-      ((exportedProfilingSummary: any): string)
+    const importedProfilingData = prepareImportedProfilingData(
+      exportedProfilingDataJsonString
     );
-
     // Sanity check that profiling snapshots are serialized correctly.
     expect(store.profilingSnapshots.get(rootID)).toEqual(
-      importedProfilingSummary.profilingSnapshots.get(rootID)
+      importedProfilingData.profilingSnapshots.get(rootID)
+    );
+    expect(store.profilingOperations.get(rootID)).toEqual(
+      importedProfilingData.profilingOperations.get(rootID)
     );
 
     // Snapshot the JSON-parsed object, rather than the raw string, because Jest formats the diff nicer.
-    expect(importedProfilingSummary).toMatchSnapshot('exported data');
+    expect(importedProfilingData).toMatchSnapshot('imported data');
 
     utils.act(() => {
-      store.importedProfilingData = importedProfilingSummary;
+      store.importedProfilingData = importedProfilingData;
     });
   };
 
@@ -71,10 +76,10 @@ describe('profiling', () => {
 
   it('should throw if importing older/unsupported data', () => {
     const {
-      prepareProfilingImport,
+      prepareImportedProfilingData,
     } = require('src/devtools/views/Profiler/utils');
     expect(() =>
-      prepareProfilingImport(
+      prepareImportedProfilingData(
         JSON.stringify({
           version: 0,
         })

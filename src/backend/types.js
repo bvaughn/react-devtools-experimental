@@ -153,6 +153,13 @@ export type ProfilingSummaryBackend = {|
   rootID: number,
 |};
 
+export type ExportedProfilingDataFromRenderer = {|
+  version: 2,
+  profilingSummary: ProfilingSummaryBackend,
+  commitDetails: Array<CommitDetailsBackend>,
+  interactions: InteractionsBackend,
+|};
+
 export type PathFrame = {|
   key: string | null,
   index: number,
@@ -180,7 +187,9 @@ export type RendererInterface = {
   getFiberCommits: (rootID: number, fiberID: number) => FiberCommitsBackend,
   getInteractions: (rootID: number) => InteractionsBackend,
   getOwnersList: (id: number) => Array<Owner> | null,
-  getProfilingDataForDownload: (rootID: number) => Object,
+  getExportedProfilingData: (
+    rootID: number
+  ) => ExportedProfilingDataFromRenderer,
   getProfilingSummary: (rootID: number) => ProfilingSummaryBackend,
   getPathForElement: (id: number) => Array<PathFrame> | null,
   handleCommitFiberRoot: (fiber: Object) => void,

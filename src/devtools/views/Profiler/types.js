@@ -25,14 +25,17 @@ export type InteractionWithCommitsFrontend = {|
   commits: Array<number>,
 |};
 
-export type InteractionsFrontend = Array<InteractionWithCommitsFrontend>;
+export type InteractionsFrontend = {|
+  interactions: Array<InteractionWithCommitsFrontend>,
+  rootID: number,
+|};
 
 export type CommitDetailsFrontend = {|
-  rootID: number,
-  commitIndex: number,
   actualDurations: Map<number, number>,
-  selfDurations: Map<number, number>,
+  commitIndex: number,
   interactions: Array<InteractionFrontend>,
+  rootID: number,
+  selfDurations: Map<number, number>,
 |};
 
 export type FiberCommitsFrontend = {|
@@ -63,11 +66,57 @@ export type ProfilingSnapshotNode = {|
   key: number | string | null,
 |};
 
+export type InterleavedProfilingSnapshotNodes = Array<
+  [number, ProfilingSnapshotNode]
+>;
+
 export type ImportedProfilingData = {|
-  version: number,
+  version: 2,
   profilingOperations: Map<number, Array<Uint32Array>>,
   profilingSnapshots: Map<number, Map<number, ProfilingSnapshotNode>>,
-  commitDetails: CommitDetailsFrontend,
+  commitDetails: Array<CommitDetailsFrontend>,
   interactions: InteractionsFrontend,
   profilingSummary: ProfilingSummaryFrontend,
+|};
+
+export type ExportedProfilingSummaryFromFrontend = {|
+  version: 2,
+  profilingOperationsByRootID: Array<[number, Array<Array<number>>]>,
+  profilingSnapshotsByRootID: Array<
+    [number, InterleavedProfilingSnapshotNodes]
+  >,
+  rendererID: number,
+  rootID: number,
+|};
+
+export type ExportedProfilingDataCommitDetails = Array<{|
+  commitIndex: number,
+  // Tuple of Fiber ID (n), actual duration (n+1) and self duration (n+2)
+  durations: Array<number>,
+  interactions: Array<InteractionFrontend>,
+  rootID: number,
+|}>;
+
+export type ExportedProfilingDataProfilingSummary = {|
+  commitDurations: Array<number>,
+  commitTimes: Array<number>,
+  // Tuple of Fiber ID (n) and duration (n+1)
+  initialTreeBaseDurations: Array<number>,
+  interactionCount: number,
+  rootID: number,
+|};
+export type ExportedProfilingDataOperations = Array<Array<number>>;
+export type ExportedProfilingDataOperationsByRootID = Array<
+  [number, ExportedProfilingDataOperations]
+>;
+export type ExportedProfilingDataSnapshotsByRootID = Array<
+  [number, InterleavedProfilingSnapshotNodes]
+>;
+export type ExportedProfilingData = {|
+  version: 2,
+  profilingOperationsByRootID: ExportedProfilingDataOperationsByRootID,
+  profilingSnapshotsByRootID: ExportedProfilingDataSnapshotsByRootID,
+  commitDetails: ExportedProfilingDataCommitDetails,
+  interactions: InteractionsFrontend,
+  profilingSummary: ExportedProfilingDataProfilingSummary,
 |};
