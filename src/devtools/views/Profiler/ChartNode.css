@@ -22,8 +22,10 @@
   font-size: var(--font-size-sans-normal);
   margin-left: 0.25rem;
   margin-right: 0.25rem;
-  line-height: 1.5;
-  padding: 0 0 0;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
   font-weight: 400;
   color: var(--color-commit-gradient-text);
   text-align: left;

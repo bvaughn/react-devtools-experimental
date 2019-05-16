@@ -69,6 +69,8 @@ export type Fiber = {|
 
   treeBaseDuration?: number,
 
+  memoizedUpdaters?: Set<number>,
+
   _debugSource?: Source | null,
   _debugOwner?: Fiber | null,
 |};
@@ -121,13 +123,22 @@ export type InteractionBackend = {|
   timestamp: number,
 |};
 
+// TODO (supenders) Is it important to handle context?
+export type ChangeDescription = {|
+  didHooksChange: boolean,
+  props: Array<string>,
+  state: Array<string>,
+|};
+
 export type CommitDetailsBackend = {|
+  changeDescriptions: Array<[number, ChangeDescription]>,
   commitIndex: number,
   // An interleaved array: fiberID at [i], actualDuration at [i + 1], computed selfDuration at [i + 2].
   durations: Array<number>,
   interactions: Array<InteractionBackend>,
   priorityLevel: string | null,
   rootID: number,
+  updaters: Array<number> | null,
 |};
 
 export type FiberCommitsBackend = {|
@@ -156,7 +167,7 @@ export type ProfilingSummaryBackend = {|
 |};
 
 export type ExportedProfilingDataFromRenderer = {|
-  version: 3,
+  version: 4,
   profilingSummary: ProfilingSummaryBackend,
   commitDetails: Array<CommitDetailsBackend>,
   interactions: InteractionsBackend,

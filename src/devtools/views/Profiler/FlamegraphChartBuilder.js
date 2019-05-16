@@ -68,6 +68,10 @@ export function getChartData({
 
     const name = displayName || 'Anonymous';
     const maybeKey = key !== null ? ` key="${key}"` : '';
+    const maybeScheduler =
+      commitDetails.updaters !== null && commitDetails.updaters.has(id)
+        ? '*'
+        : '';
 
     let maybeBadge = '';
     if (type === ElementTypeForwardRef) {
@@ -76,7 +80,8 @@ export function getChartData({
       maybeBadge = ' (Memo)';
     }
 
-    let label = `${name}${maybeBadge}${maybeKey}`;
+    let label = `${maybeScheduler}${name}${maybeBadge}${maybeKey}`;
+
     if (didRender) {
       label += ` (${formatDuration(selfDuration)}ms of ${formatDuration(
         actualDuration

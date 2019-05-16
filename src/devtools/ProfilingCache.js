@@ -133,6 +133,8 @@ export default class ProfilingCache {
           priorityLevel: null,
           interactions: [],
           selfDurations: new Map(),
+          updaters: null,
+          changeDescriptions: new Map(),
         });
       });
     },
@@ -349,6 +351,8 @@ export default class ProfilingCache {
     interactions,
     priorityLevel,
     rootID,
+    updaters,
+    changeDescriptions,
   }: CommitDetailsBackend) => {
     const key = `${rootID}-${commitIndex}`;
     const resolve = this._pendingCommitDetailsMap.get(key);
@@ -365,10 +369,12 @@ export default class ProfilingCache {
 
       resolve({
         actualDurations: actualDurationsMap,
+        changeDescriptions: new Map(changeDescriptions),
         commitIndex,
         interactions,
         priorityLevel,
         rootID,
+        updaters: updaters != null ? new Set(updaters) : null,
         selfDurations: selfDurationsMap,
       });
     }

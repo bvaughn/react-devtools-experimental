@@ -37,6 +37,7 @@ import {
 import { inspectHooksOfFiber } from './ReactDebugHooks';
 
 import type {
+  ChangeDescription,
   CommitDetailsBackend,
   DevToolsHook,
   ExportedProfilingDataFromRenderer,
@@ -647,8 +648,87 @@ export function attach(
     return ((fiberToIDMap.get(primaryFiber): any): number);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  function hasDataChanged(prevFiber: Fiber, nextFiber: Fiber): boolean {
+  function getChangeDescription(
+    prevFiber: Fiber,
+    nextFiber: Fiber
+  ): ChangeDescription | null {
+    switch (getElementTypeForFiber(nextFiber)) {
+      case ElementTypeClass:
+      case ElementTypeFunction:
+      case ElementTypeMemo:
+      case ElementTypeForwardRef:
+        return {
+          didHooksChange: didHooksChange(
+            prevFiber.memoizedState,
+            nextFiber.memoizedState
+          ),
+          props: getChangedKeys(
+            prevFiber.memoizedProps,
+            nextFiber.memoizedProps
+          ),
+          state: getChangedKeys(
+            prevFiber.memoizedState,
+            nextFiber.memoizedState
+          ),
+        };
+      default:
+        return null;
+    }
+  }
+
+  function didHooksChange(prev: any, next: any): boolean {
+    if (next == null) {
+      return false;
+    }
+
+    // We can't report anything meaningful for hooks changes.
+    if (
+      next.hasOwnProperty('baseState') &&
+      next.hasOwnProperty('memoizedState') &&
+      next.hasOwnProperty('next') &&
+      next.hasOwnProperty('queue')
+    ) {
+      while (next !== null) {
+        if (next.memoizedState !== prev.memoizedState) {
+          return true;
+        } else {
+          next = next.next;
+          prev = prev.next;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  // TODO (supenders) How will this handle hooks?
+  function getChangedKeys(prev: any, next: any): Array<string> {
+    const keys = [];
+
+    if (next == null) {
+      return keys;
+    }
+
+    // We can't report anything meaningful for hooks changes.
+    if (
+      next.hasOwnProperty('baseState') &&
+      next.hasOwnProperty('memoizedState') &&
+      next.hasOwnProperty('next') &&
+      next.hasOwnProperty('queue')
+    ) {
+      return keys;
+    }
+
+    // TODO (supenders) This does not account for props that were added or removed.
+    for (let key in prev) {
+      if (prev[key] !== next[key]) {
+        keys.push(key);
+      }
+    }
+    return keys;
+  }
+
+  function didFiberRender(prevFiber: Fiber, nextFiber: Fiber): boolean {
     switch (nextFiber.tag) {
       case ClassComponent:
       case FunctionComponent:
@@ -1019,7 +1099,7 @@ export function attach(
         pushOperation(treeBaseDuration);
       }
 
-      if (alternate == null || hasDataChanged(alternate, fiber)) {
+      if (alternate == null || didFiberRender(alternate, fiber)) {
         if (actualDuration != null) {
           // The actual duration reported by React includes time spent working on children.
           // This is useful information, but it's also useful to be able to exclude child durations.
@@ -1044,6 +1124,12 @@ export function attach(
             metadata.maxActualDuration,
             actualDuration
           );
+
+          const changeDescription =
+            alternate === null ? null : getChangeDescription(alternate, fiber);
+          if (changeDescription !== null) {
+            metadata.changeDescriptions.set(id, changeDescription);
+          }
         }
       }
     }
@@ -1291,8 +1377,15 @@ export function attach(
                 timestamp: interaction.timestamp - profilingStartTime,
               })
             ),
+            updaters:
+              root.memoizedUpdaters != null
+                ? Array.from(root.memoizedUpdaters).map((fiber: Fiber) =>
+                    getFiberID(fiber)
+                  )
+                : null,
             maxActualDuration: 0,
             priorityLevel: null,
+            changeDescriptions: new Map(),
           };
         }
 
@@ -1334,9 +1427,16 @@ export function attach(
             timestamp: interaction.timestamp - profilingStartTime,
           })
         ),
+        updaters:
+          root.memoizedUpdaters != null
+            ? Array.from(root.memoizedUpdaters).map((fiber: Fiber) =>
+                getFiberID(fiber)
+              )
+            : null,
         maxActualDuration: 0,
         priorityLevel:
           priorityLevel == null ? null : formatPriorityLevel(priorityLevel),
+        changeDescriptions: new Map(),
       };
     }
 
@@ -1982,8 +2082,10 @@ export function attach(
     commitTime: number,
     durations: Array<number>,
     interactions: Array<InteractionBackend>,
+    updaters: Array<number> | null,
     maxActualDuration: number,
     priorityLevel: string | null,
+    changeDescriptions: Map<number, ChangeDescription>,
   |};
 
   type CommitProfilingMetadataMap = Map<number, Array<CommitProfilingData>>;
@@ -2006,10 +2108,14 @@ export function attach(
       const commitProfilingData = commitProfilingMetadata[commitIndex];
       if (commitProfilingData != null) {
         return {
+          changeDescriptions: [
+            ...commitProfilingData.changeDescriptions.entries(),
+          ],
           commitIndex,
           durations: commitProfilingData.durations,
           interactions: commitProfilingData.interactions,
           priorityLevel: commitProfilingData.priorityLevel,
+          updaters: commitProfilingData.updaters,
           rootID,
         };
       }
@@ -2020,11 +2126,13 @@ export function attach(
     );
 
     return {
+      changeDescriptions: [],
       commitIndex,
       durations: [],
       interactions: [],
       priorityLevel: null,
       rootID,
+      updaters: [],
     };
   }
 

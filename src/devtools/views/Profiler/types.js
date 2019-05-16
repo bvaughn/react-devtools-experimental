@@ -38,13 +38,22 @@ export type InteractionsFrontend = {|
   rootID: number,
 |};
 
+// TODO (supenders) Is it important to handle context?
+export type ChangeDescription = {|
+  didHooksChange: boolean,
+  props: Array<string>,
+  state: Array<string>,
+|};
+
 export type CommitDetailsFrontend = {|
   actualDurations: Map<number, number>,
+  changeDescriptions: Map<number, ChangeDescription>,
   commitIndex: number,
   interactions: Array<InteractionFrontend>,
   priorityLevel: string | null,
   rootID: number,
   selfDurations: Map<number, number>,
+  updaters: Set<number> | null,
 |};
 
 export type FiberCommitsFrontend = {|
@@ -77,7 +86,7 @@ export type ProfilingSnapshotNode = {|
 |};
 
 export type ImportedProfilingData = {|
-  version: 3,
+  version: 4,
   profilingOperations: Map<number, Array<Uint32Array>>,
   profilingSnapshots: Map<number, Map<number, ProfilingSnapshotNode>>,
   commitDetails: Array<CommitDetailsFrontend>,
@@ -93,7 +102,7 @@ export type SerializableProfilingDataSnapshotsByRootID = Array<
 >;
 
 export type ExportedProfilingSummaryFromFrontend = {|
-  version: 3,
+  version: 4,
   profilingOperationsByRootID: SerializableProfilingDataOperationsByRootID,
   profilingSnapshotsByRootID: SerializableProfilingDataSnapshotsByRootID,
   rendererID: number,
@@ -101,7 +110,7 @@ export type ExportedProfilingSummaryFromFrontend = {|
 |};
 
 export type ExportedProfilingData = {|
-  version: 3,
+  version: 4,
   profilingOperationsByRootID: SerializableProfilingDataOperationsByRootID,
   profilingSnapshotsByRootID: SerializableProfilingDataSnapshotsByRootID,
   commitDetails: Array<CommitDetailsBackend>,

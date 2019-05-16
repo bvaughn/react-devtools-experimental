@@ -27,9 +27,20 @@
   color: var(--color-dim);
 }
 
+.ScheduledBy {
+  font-family: var(--font-family-monospace);
+  font-size: var(--font-size-monospace-normal);
+}
+
+.UnmountedScheduler {
+  padding: 0.25rem 0.5rem;
+  color: var(--color-dim);
+}
+
 .Interactions {
   margin: 0 0 0.5rem;
 }
+.ScheduledBy,
 .Interaction {
   display: block;
   width: 100%;
@@ -39,6 +50,8 @@
   padding: 0.25rem 0.5rem;
   color: var(--color-text);
 }
+.ScheduledBy:focus,
+.ScheduledBy:hover,
 .Interaction:focus,
 .Interaction:hover {
   outline: none;

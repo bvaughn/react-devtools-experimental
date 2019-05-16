@@ -7,6 +7,11 @@ import { StoreContext } from '../context';
 
 import styles from './SidebarCommitInfo.css';
 
+import type {
+  CommitDetailsFrontend,
+  ProfilingSummaryFrontend,
+} from 'src/devtools/views/Profiler/types';
+
 export type Props = {||};
 
 export default function SidebarCommitInfo(_: Props) {
@@ -49,18 +54,19 @@ export default function SidebarCommitInfo(_: Props) {
     return <div className={styles.NothingSelected}>Nothing selected</div>;
   }
 
-  const { commitDurations, commitTimes } = profilingCache.ProfilingSummary.read(
-    {
-      rendererID: ((rendererID: any): number),
-      rootID: ((rootID: any): number),
-    }
-  );
+  const profilingSummary = profilingCache.ProfilingSummary.read({
+    rendererID: ((rendererID: any): number),
+    rootID: ((rootID: any): number),
+  });
 
-  const { interactions, priorityLevel } = profilingCache.CommitDetails.read({
+  const commitDetails = profilingCache.CommitDetails.read({
     commitIndex: selectedCommitIndex,
     rendererID: ((rendererID: any): number),
     rootID: ((rootID: any): number),
   });
+
+  const { commitDurations, commitTimes } = profilingSummary;
+  const { interactions, priorityLevel } = commitDetails;
 
   const viewInteraction = interaction => {
     selectTab('interactions');
@@ -93,6 +99,16 @@ export default function SidebarCommitInfo(_: Props) {
               ms
             </span>
           </li>
+          {commitDetails.updaters !== null && (
+            <li className={styles.ListItem}>
+              <label className={styles.Label}>What caused this render</label>?
+              <Schedulers
+                commitDetails={commitDetails}
+                commitIndex={selectedCommitIndex}
+                profilingSummary={profilingSummary}
+              />
+            </li>
+          )}
           <li className={styles.Interactions}>
             <label className={styles.Label}>Interactions</label>:
             <div className={styles.InteractionList}>
@@ -137,6 +153,51 @@ export default function SidebarCommitInfo(_: Props) {
       </div>
     </Fragment>
   );
+}
+
+function Schedulers({
+  commitDetails,
+  commitIndex,
+  profilingSummary,
+}: {|
+  commitDetails: CommitDetailsFrontend,
+  commitIndex: number,
+  profilingSummary: ProfilingSummaryFrontend,
+|}) {
+  const { profilingCache } = useContext(StoreContext);
+  const { selectFiber } = useContext(ProfilerContext);
+
+  const commitTree = profilingCache.getCommitTree({
+    commitIndex,
+    profilingSummary,
+  });
+
+  const children = [];
+  if (commitDetails.updaters !== null) {
+    for (let id of commitDetails.updaters) {
+      const node = commitTree.nodes.get(id);
+      if (node == null) {
+        children.push(
+          <div key={id} className={styles.UnmountedScheduler}>
+            (an unmounted component)
+          </div>
+        );
+      } else {
+        const { displayName, key } = node;
+
+        children.push(
+          <button
+            key={id}
+            className={styles.ScheduledBy}
+            onClick={() => selectFiber(id, displayName)}
+          >
+            {displayName} {key ? `key="${key}"` : ''}
+          </button>
+        );
+      }
+    }
+  }
+  return children;
 }
 
 function ScreenshotModal({

@@ -152,11 +152,17 @@ export const prepareImportedProfilingData = (
         }
         return {
           actualDurations: actualDurationsMap,
+          changeDescriptions: new Map(
+            commitDetailsBackendItem.changeDescriptions.map(
+              ([fiberID, changeDescription]) => [fiberID, changeDescription]
+            )
+          ),
           commitIndex: commitDetailsBackendItem.commitIndex,
           interactions: commitDetailsBackendItem.interactions,
           priorityLevel: commitDetailsBackendItem.priorityLevel,
           rootID: commitDetailsBackendItem.rootID,
           selfDurations: selfDurationsMap,
+          updaters: new Set(commitDetailsBackendItem.updaters),
         };
       }
     ),

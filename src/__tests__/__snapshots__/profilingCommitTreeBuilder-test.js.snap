@@ -5,7 +5,7 @@ Object {
   "nodes": Map {
     1 => Object {
       "children": Array [
-        2,
+        3,
       ],
       "displayName": null,
       "id": 1,
@@ -14,23 +14,23 @@ Object {
       "treeBaseDuration": 12,
       "type": 11,
     },
-    2 => Object {
+    3 => Object {
       "children": Array [
-        3,
+        4,
       ],
       "displayName": "Parent",
-      "id": 2,
+      "id": 3,
       "key": null,
       "parentID": 1,
       "treeBaseDuration": 12,
       "type": 5,
     },
-    3 => Object {
+    4 => Object {
       "children": Array [],
       "displayName": "Child",
-      "id": 3,
+      "id": 4,
       "key": "0",
-      "parentID": 2,
+      "parentID": 3,
       "treeBaseDuration": 2,
       "type": 8,
     },
@@ -44,7 +44,7 @@ Object {
   "nodes": Map {
     1 => Object {
       "children": Array [
-        2,
+        3,
       ],
       "displayName": null,
       "id": 1,
@@ -53,34 +53,25 @@ Object {
       "treeBaseDuration": 16,
       "type": 11,
     },
-    2 => Object {
+    3 => Object {
       "children": Array [
-        3,
         4,
         5,
+        6,
       ],
       "displayName": "Parent",
-      "id": 2,
+      "id": 3,
       "key": null,
       "parentID": 1,
       "treeBaseDuration": 16,
       "type": 5,
     },
-    3 => Object {
-      "children": Array [],
-      "displayName": "Child",
-      "id": 3,
-      "key": "0",
-      "parentID": 2,
-      "treeBaseDuration": 2,
-      "type": 8,
-    },
     4 => Object {
       "children": Array [],
       "displayName": "Child",
       "id": 4,
-      "key": "1",
-      "parentID": 2,
+      "key": "0",
+      "parentID": 3,
       "treeBaseDuration": 2,
       "type": 8,
     },
@@ -88,8 +79,17 @@ Object {
       "children": Array [],
       "displayName": "Child",
       "id": 5,
+      "key": "1",
+      "parentID": 3,
+      "treeBaseDuration": 2,
+      "type": 8,
+    },
+    6 => Object {
+      "children": Array [],
+      "displayName": "Child",
+      "id": 6,
       "key": "2",
-      "parentID": 2,
+      "parentID": 3,
       "treeBaseDuration": 2,
       "type": 8,
     },
@@ -103,7 +103,7 @@ Object {
   "nodes": Map {
     1 => Object {
       "children": Array [
-        2,
+        3,
       ],
       "displayName": null,
       "id": 1,
@@ -112,33 +112,33 @@ Object {
       "treeBaseDuration": 14,
       "type": 11,
     },
-    2 => Object {
+    3 => Object {
       "children": Array [
-        3,
         4,
+        5,
       ],
       "displayName": "Parent",
-      "id": 2,
+      "id": 3,
       "key": null,
       "parentID": 1,
       "treeBaseDuration": 14,
       "type": 5,
     },
-    3 => Object {
-      "children": Array [],
-      "displayName": "Child",
-      "id": 3,
-      "key": "0",
-      "parentID": 2,
-      "treeBaseDuration": 2,
-      "type": 8,
-    },
     4 => Object {
       "children": Array [],
       "displayName": "Child",
       "id": 4,
+      "key": "0",
+      "parentID": 3,
+      "treeBaseDuration": 2,
+      "type": 8,
+    },
+    5 => Object {
+      "children": Array [],
+      "displayName": "Child",
+      "id": 5,
       "key": "1",
-      "parentID": 2,
+      "parentID": 3,
       "treeBaseDuration": 2,
       "type": 8,
     },
@@ -152,7 +152,7 @@ Object {
   "nodes": Map {
     1 => Object {
       "children": Array [
-        2,
+        3,
       ],
       "displayName": null,
       "id": 1,
@@ -161,10 +161,10 @@ Object {
       "treeBaseDuration": 10,
       "type": 11,
     },
-    2 => Object {
+    3 => Object {
       "children": Array [],
       "displayName": "Parent",
-      "id": 2,
+      "id": 3,
       "key": null,
       "parentID": 1,
       "treeBaseDuration": 10,
