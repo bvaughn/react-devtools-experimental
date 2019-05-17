@@ -162,7 +162,15 @@ export const prepareImportedProfilingData = (
           priorityLevel: commitDetailsBackendItem.priorityLevel,
           rootID: commitDetailsBackendItem.rootID,
           selfDurations: selfDurationsMap,
-          updaters: new Set(commitDetailsBackendItem.updaters),
+          updaters:
+            commitDetailsBackendItem.updaters !== null
+              ? new Map(
+                  commitDetailsBackendItem.updaters.map(updater => [
+                    updater.id,
+                    updater,
+                  ])
+                )
+              : null,
         };
       }
     ),

@@ -30,14 +30,16 @@ export type Element = {|
   weight: number,
 |};
 
-export type Owner = {|
+export type SerializedElement = {|
   displayName: string | null,
   id: number,
+  key: number | string | null,
+  type: ElementType,
 |};
 
 export type OwnersList = {|
   id: number,
-  owners: Array<Owner> | null,
+  owners: Array<SerializedElement> | null,
 |};
 
 export type InspectedElement = {|
@@ -64,7 +66,7 @@ export type InspectedElement = {|
   state: Object | null,
 
   // List of owners
-  owners: Array<Owner> | null,
+  owners: Array<SerializedElement> | null,
 
   // Location of component in source coude.
   source: Object | null,

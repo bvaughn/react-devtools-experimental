@@ -174,17 +174,10 @@ function Schedulers({
 
   const children = [];
   if (commitDetails.updaters !== null) {
-    for (let id of commitDetails.updaters) {
-      const node = commitTree.nodes.get(id);
-      if (node == null) {
-        children.push(
-          <div key={id} className={styles.UnmountedScheduler}>
-            (an unmounted component)
-          </div>
-        );
-      } else {
-        const { displayName, key } = node;
-
+    commitDetails.updaters.forEach(serializedElement => {
+      const { displayName, id, key } = serializedElement;
+      const isVisibleInTree = commitTree.nodes.has(id);
+      if (isVisibleInTree) {
         children.push(
           <button
             key={id}
@@ -194,8 +187,14 @@ function Schedulers({
             {displayName} {key ? `key="${key}"` : ''}
           </button>
         );
+      } else {
+        children.push(
+          <div key={id} className={styles.UnmountedScheduler}>
+            {displayName} {key ? `key="${key}"` : ''}
+          </div>
+        );
       }
-    }
+    });
   }
   return children;
 }

@@ -1,9 +1,9 @@
 // @flow
 
-import type { ComponentFilter, ElementType } from 'src/types';
+import type { ComponentFilter } from 'src/types';
 import type {
   InspectedElement,
-  Owner,
+  SerializedElement,
 } from 'src/devtools/views/Components/types';
 
 type BundleType =
@@ -75,15 +75,6 @@ export type Fiber = {|
   _debugOwner?: Fiber | null,
 |};
 
-// TODO: If it's useful for the frontend to know which types of data an Element has
-// (e.g. props, state, context, hooks) then we could add a bitmask field for this
-// to keep the number of attributes small.
-export type FiberData = {|
-  key: string | null,
-  displayName: string | null,
-  type: ElementType,
-|};
-
 export type NativeType = {};
 export type RendererID = number;
 
@@ -138,7 +129,7 @@ export type CommitDetailsBackend = {|
   interactions: Array<InteractionBackend>,
   priorityLevel: string | null,
   rootID: number,
-  updaters: Array<number> | null,
+  updaters: Array<SerializedElement> | null,
 |};
 
 export type FiberCommitsBackend = {|
@@ -199,7 +190,7 @@ export type RendererInterface = {
   ) => number | null,
   getFiberCommits: (rootID: number, fiberID: number) => FiberCommitsBackend,
   getInteractions: (rootID: number) => InteractionsBackend,
-  getOwnersList: (id: number) => Array<Owner> | null,
+  getOwnersList: (id: number) => Array<SerializedElement> | null,
   getExportedProfilingData: (
     rootID: number
   ) => ExportedProfilingDataFromRenderer,

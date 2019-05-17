@@ -12,14 +12,20 @@ Array [
   Object {
     "displayName": "Grandparent",
     "id": 7,
+    "key": null,
+    "type": 5,
   },
   Object {
     "displayName": "Parent",
     "id": 9,
+    "key": null,
+    "type": 5,
   },
   Object {
     "displayName": "Child",
     "id": 8,
+    "key": null,
+    "type": 5,
   },
 ]
 `;
@@ -37,14 +43,20 @@ Array [
   Object {
     "displayName": "Grandparent",
     "id": 2,
+    "key": null,
+    "type": 5,
   },
   Object {
     "displayName": "Parent",
     "id": 3,
+    "key": null,
+    "type": 5,
   },
   Object {
     "displayName": "Child",
     "id": 4,
+    "key": null,
+    "type": 5,
   },
 ]
 `;
@@ -54,10 +66,14 @@ Array [
   Object {
     "displayName": "Grandparent",
     "id": 2,
+    "key": null,
+    "type": 5,
   },
   Object {
     "displayName": "Parent",
     "id": 3,
+    "key": null,
+    "type": 5,
   },
 ]
 `;
@@ -72,6 +88,8 @@ Array [
   Object {
     "displayName": "Grandparent",
     "id": 5,
+    "key": null,
+    "type": 5,
   },
 ]
 `;

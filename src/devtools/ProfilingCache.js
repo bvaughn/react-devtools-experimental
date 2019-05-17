@@ -374,7 +374,10 @@ export default class ProfilingCache {
         interactions,
         priorityLevel,
         rootID,
-        updaters: updaters != null ? new Set(updaters) : null,
+        updaters:
+          updaters !== null
+            ? new Map(updaters.map(updater => [updater.id, updater]))
+            : null,
         selfDurations: selfDurationsMap,
       });
     }

@@ -54,7 +54,7 @@ import type {
 } from './types';
 import type {
   InspectedElement,
-  Owner,
+  SerializedElement,
 } from 'src/devtools/views/Components/types';
 import type { ComponentFilter, ElementType } from 'src/types';
 
@@ -1377,12 +1377,7 @@ export function attach(
                 timestamp: interaction.timestamp - profilingStartTime,
               })
             ),
-            updaters:
-              root.memoizedUpdaters != null
-                ? Array.from(root.memoizedUpdaters).map((fiber: Fiber) =>
-                    getFiberID(fiber)
-                  )
-                : null,
+            updaters: getUpdatersList(root),
             maxActualDuration: 0,
             priorityLevel: null,
             changeDescriptions: new Map(),
@@ -1394,6 +1389,17 @@ export function attach(
         currentRootID = -1;
       });
     }
+  }
+
+  function getUpdatersList(root): Array<SerializedElement> | null {
+    return root.memoizedUpdaters != null
+      ? Array.from(root.memoizedUpdaters).map((fiber: Fiber) => ({
+          displayName: getDisplayNameForFiber(fiber),
+          id: getFiberID(getPrimaryFiber(fiber)),
+          key: fiber.key,
+          type: getElementTypeForFiber(fiber),
+        }))
+      : null;
   }
 
   function handleCommitFiberUnmount(fiber) {
@@ -1427,12 +1433,7 @@ export function attach(
             timestamp: interaction.timestamp - profilingStartTime,
           })
         ),
-        updaters:
-          root.memoizedUpdaters != null
-            ? Array.from(root.memoizedUpdaters).map((fiber: Fiber) =>
-                getFiberID(fiber)
-              )
-            : null,
+        updaters: getUpdatersList(root),
         maxActualDuration: 0,
         priorityLevel:
           priorityLevel == null ? null : formatPriorityLevel(priorityLevel),
@@ -1807,18 +1808,20 @@ export function attach(
     }
   }
 
-  function getOwnersList(id: number): Array<Owner> | null {
+  function getOwnersList(id: number): Array<SerializedElement> | null {
     let fiber = findCurrentFiberUsingSlowPathById(id);
     if (fiber == null) {
       return null;
     }
 
-    const { _debugOwner } = fiber;
+    const { _debugOwner, key } = fiber;
 
     const owners = [
       {
         displayName: getDisplayNameForFiber(fiber) || 'Anonymous',
         id,
+        key,
+        type: getElementTypeForFiber(fiber),
       },
     ];
 
@@ -1828,6 +1831,8 @@ export function attach(
         owners.unshift({
           displayName: getDisplayNameForFiber(owner) || 'Anonymous',
           id: getFiberID(getPrimaryFiber(owner)),
+          key,
+          type: getElementTypeForFiber(owner),
         });
         owner = owner._debugOwner || null;
       }
@@ -1923,6 +1928,8 @@ export function attach(
         owners.push({
           displayName: getDisplayNameForFiber(owner) || 'Anonymous',
           id: getFiberID(getPrimaryFiber(owner)),
+          key: owner.key,
+          type: getElementTypeForFiber(owner),
         });
         owner = owner._debugOwner || null;
       }
@@ -2082,7 +2089,7 @@ export function attach(
     commitTime: number,
     durations: Array<number>,
     interactions: Array<InteractionBackend>,
-    updaters: Array<number> | null,
+    updaters: Array<SerializedElement> | null,
     maxActualDuration: number,
     priorityLevel: string | null,
     changeDescriptions: Map<number, ChangeDescription>,

@@ -4,10 +4,10 @@ exports[`profiling CommitDetails should be collected for each commit: CommitDeta
 Object {
   "actualDurations": Map {
     1 => 12,
-    3 => 12,
-    4 => 0,
+    2 => 12,
+    3 => 0,
+    4 => 1,
     5 => 1,
-    6 => 1,
   },
   "changeDescriptions": Map {},
   "commitIndex": 0,
@@ -16,13 +16,18 @@ Object {
   "rootID": 1,
   "selfDurations": Map {
     1 => 0,
-    3 => 10,
-    4 => 0,
+    2 => 10,
+    3 => 0,
+    4 => 1,
     5 => 1,
-    6 => 1,
   },
-  "updaters": Set {
-    2,
+  "updaters": Map {
+    1 => Object {
+      "displayName": null,
+      "id": 1,
+      "key": null,
+      "type": 11,
+    },
   },
 }
 `;
@@ -30,24 +35,24 @@ Object {
 exports[`profiling CommitDetails should be collected for each commit: CommitDetails commitIndex: 1 1`] = `
 Object {
   "actualDurations": Map {
-    4 => 0,
-    5 => 1,
-    7 => 2,
-    3 => 13,
+    3 => 0,
+    4 => 1,
+    6 => 2,
+    2 => 13,
     1 => 13,
   },
   "changeDescriptions": Map {
+    3 => Object {
+      "didHooksChange": false,
+      "props": Array [],
+      "state": Array [],
+    },
     4 => Object {
       "didHooksChange": false,
       "props": Array [],
       "state": Array [],
     },
-    5 => Object {
-      "didHooksChange": false,
-      "props": Array [],
-      "state": Array [],
-    },
-    3 => Object {
+    2 => Object {
       "didHooksChange": false,
       "props": Array [
         "count",
@@ -60,14 +65,19 @@ Object {
   "priorityLevel": "Immediate",
   "rootID": 1,
   "selfDurations": Map {
-    4 => 0,
-    5 => 1,
-    7 => 2,
-    3 => 10,
+    3 => 0,
+    4 => 1,
+    6 => 2,
+    2 => 10,
     1 => 0,
   },
-  "updaters": Set {
-    1,
+  "updaters": Map {
+    1 => Object {
+      "displayName": null,
+      "id": 1,
+      "key": null,
+      "type": 11,
+    },
   },
 }
 `;
@@ -75,17 +85,17 @@ Object {
 exports[`profiling CommitDetails should be collected for each commit: CommitDetails commitIndex: 2 1`] = `
 Object {
   "actualDurations": Map {
-    4 => 0,
-    3 => 10,
+    3 => 0,
+    2 => 10,
     1 => 10,
   },
   "changeDescriptions": Map {
-    4 => Object {
+    3 => Object {
       "didHooksChange": false,
       "props": Array [],
       "state": Array [],
     },
-    3 => Object {
+    2 => Object {
       "didHooksChange": false,
       "props": Array [
         "count",
@@ -98,12 +108,17 @@ Object {
   "priorityLevel": "Immediate",
   "rootID": 1,
   "selfDurations": Map {
-    4 => 0,
-    3 => 10,
+    3 => 0,
+    2 => 10,
     1 => 0,
   },
-  "updaters": Set {
-    2,
+  "updaters": Map {
+    1 => Object {
+      "displayName": null,
+      "id": 1,
+      "key": null,
+      "type": 11,
+    },
   },
 }
 `;
@@ -111,11 +126,11 @@ Object {
 exports[`profiling CommitDetails should be collected for each commit: CommitDetails commitIndex: 3 1`] = `
 Object {
   "actualDurations": Map {
-    3 => 10,
+    2 => 10,
     1 => 10,
   },
   "changeDescriptions": Map {
-    3 => Object {
+    2 => Object {
       "didHooksChange": false,
       "props": Array [
         "count",
@@ -128,11 +143,16 @@ Object {
   "priorityLevel": "Immediate",
   "rootID": 1,
   "selfDurations": Map {
-    3 => 10,
+    2 => 10,
     1 => 0,
   },
-  "updaters": Set {
-    1,
+  "updaters": Map {
+    1 => Object {
+      "displayName": null,
+      "id": 1,
+      "key": null,
+      "type": 11,
+    },
   },
 }
 `;
@@ -143,10 +163,10 @@ Object {
     Object {
       "actualDurations": Map {
         1 => 12,
-        3 => 12,
-        4 => 0,
+        2 => 12,
+        3 => 0,
+        4 => 1,
         5 => 1,
-        6 => 1,
       },
       "changeDescriptions": Map {},
       "commitIndex": 0,
@@ -155,35 +175,40 @@ Object {
       "rootID": 1,
       "selfDurations": Map {
         1 => 0,
-        3 => 10,
-        4 => 0,
+        2 => 10,
+        3 => 0,
+        4 => 1,
         5 => 1,
-        6 => 1,
       },
-      "updaters": Set {
-        2,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
     Object {
       "actualDurations": Map {
-        4 => 0,
-        5 => 1,
-        7 => 2,
-        3 => 13,
+        3 => 0,
+        4 => 1,
+        6 => 2,
+        2 => 13,
         1 => 13,
       },
       "changeDescriptions": Map {
+        3 => Object {
+          "didHooksChange": false,
+          "props": Array [],
+          "state": Array [],
+        },
         4 => Object {
           "didHooksChange": false,
           "props": Array [],
           "state": Array [],
         },
-        5 => Object {
-          "didHooksChange": false,
-          "props": Array [],
-          "state": Array [],
-        },
-        3 => Object {
+        2 => Object {
           "didHooksChange": false,
           "props": Array [
             "count",
@@ -196,29 +221,34 @@ Object {
       "priorityLevel": "Immediate",
       "rootID": 1,
       "selfDurations": Map {
-        4 => 0,
-        5 => 1,
-        7 => 2,
-        3 => 10,
+        3 => 0,
+        4 => 1,
+        6 => 2,
+        2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        1,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
     Object {
       "actualDurations": Map {
-        4 => 0,
-        3 => 10,
+        3 => 0,
+        2 => 10,
         1 => 10,
       },
       "changeDescriptions": Map {
-        4 => Object {
+        3 => Object {
           "didHooksChange": false,
           "props": Array [],
           "state": Array [],
         },
-        3 => Object {
+        2 => Object {
           "didHooksChange": false,
           "props": Array [
             "count",
@@ -231,21 +261,26 @@ Object {
       "priorityLevel": "Immediate",
       "rootID": 1,
       "selfDurations": Map {
-        4 => 0,
-        3 => 10,
+        3 => 0,
+        2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        2,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
     Object {
       "actualDurations": Map {
-        3 => 10,
+        2 => 10,
         1 => 10,
       },
       "changeDescriptions": Map {
-        3 => Object {
+        2 => Object {
           "didHooksChange": false,
           "props": Array [
             "count",
@@ -258,11 +293,16 @@ Object {
       "priorityLevel": "Immediate",
       "rootID": 1,
       "selfDurations": Map {
-        3 => 10,
+        2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        1,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
   ],
@@ -302,44 +342,44 @@ Object {
         1,
         12000,
         1,
-        3,
+        2,
         5,
         1,
         0,
         1,
         0,
         4,
-        3,
+        2,
         12000,
         1,
-        4,
+        3,
         5,
-        3,
-        3,
+        2,
+        2,
         2,
         3,
         4,
-        4,
+        3,
         0,
         1,
+        4,
         5,
-        5,
-        3,
-        3,
+        2,
+        2,
         2,
         4,
         4,
-        5,
+        4,
         1000,
         1,
-        6,
+        5,
         8,
-        3,
-        3,
+        2,
+        2,
         2,
         0,
         4,
-        6,
+        5,
         1000,
       ],
       Uint32Array [
@@ -355,25 +395,25 @@ Object {
         1,
         50,
         1,
-        7,
+        6,
         5,
-        3,
-        3,
+        2,
+        2,
         1,
         2,
         4,
-        7,
+        6,
         2000,
         4,
-        3,
+        2,
         14000,
         3,
+        2,
+        4,
         3,
         4,
-        4,
-        5,
-        7,
         6,
+        5,
         4,
         1,
         14000,
@@ -384,16 +424,16 @@ Object {
         0,
         2,
         2,
-        7,
-        5,
+        6,
         4,
-        3,
+        4,
+        2,
         11000,
         3,
-        3,
         2,
-        4,
-        6,
+        2,
+        3,
+        5,
         4,
         1,
         11000,
@@ -404,7 +444,7 @@ Object {
         0,
         2,
         1,
-        4,
+        3,
       ],
     ],
   },
@@ -436,9 +476,9 @@ exports[`profiling CommitDetails should calculate a self duration based on actua
 Object {
   "actualDurations": Map {
     1 => 16,
-    3 => 16,
-    4 => 1,
-    6 => 1,
+    2 => 16,
+    3 => 1,
+    5 => 1,
   },
   "changeDescriptions": Map {},
   "commitIndex": 0,
@@ -447,12 +487,17 @@ Object {
   "rootID": 1,
   "selfDurations": Map {
     1 => 0,
-    3 => 10,
-    4 => 1,
-    6 => 1,
+    2 => 10,
+    3 => 1,
+    5 => 1,
   },
-  "updaters": Set {
-    2,
+  "updaters": Map {
+    1 => Object {
+      "displayName": null,
+      "id": 1,
+      "key": null,
+      "type": 11,
+    },
   },
 }
 `;
@@ -461,9 +506,9 @@ exports[`profiling CommitDetails should calculate self duration correctly for su
 Object {
   "actualDurations": Map {
     1 => 15,
-    3 => 15,
-    4 => 5,
-    5 => 2,
+    2 => 15,
+    3 => 5,
+    4 => 2,
   },
   "changeDescriptions": Map {},
   "commitIndex": 0,
@@ -472,12 +517,17 @@ Object {
   "rootID": 1,
   "selfDurations": Map {
     1 => 0,
-    3 => 10,
-    4 => 3,
-    5 => 2,
+    2 => 10,
+    3 => 3,
+    4 => 2,
   },
-  "updaters": Set {
-    2,
+  "updaters": Map {
+    1 => Object {
+      "displayName": null,
+      "id": 1,
+      "key": null,
+      "type": 11,
+    },
   },
 }
 `;
@@ -485,8 +535,8 @@ Object {
 exports[`profiling CommitDetails should calculate self duration correctly for suspended views: CommitDetails with filtered self durations 2`] = `
 Object {
   "actualDurations": Map {
-    6 => 3,
-    4 => 3,
+    5 => 3,
+    3 => 3,
   },
   "changeDescriptions": Map {},
   "commitIndex": 1,
@@ -494,16 +544,21 @@ Object {
   "priorityLevel": "Immediate",
   "rootID": 1,
   "selfDurations": Map {
-    6 => 3,
-    4 => 0,
+    5 => 3,
+    3 => 0,
   },
-  "updaters": Set {
-    2,
+  "updaters": Map {
+    1 => Object {
+      "displayName": null,
+      "id": 1,
+      "key": null,
+      "type": 11,
+    },
   },
 }
 `;
 
-exports[`profiling FiberCommits should be collected for each rendered fiber: FiberCommits: element 3 1`] = `
+exports[`profiling FiberCommits should be collected for each rendered fiber: FiberCommits: element 2 1`] = `
 Object {
   "commitDurations": Array [
     0,
@@ -512,6 +567,21 @@ Object {
     10,
     2,
     10,
+  ],
+  "fiberID": 2,
+  "rootID": 1,
+}
+`;
+
+exports[`profiling FiberCommits should be collected for each rendered fiber: FiberCommits: element 3 1`] = `
+Object {
+  "commitDurations": Array [
+    0,
+    0,
+    1,
+    0,
+    2,
+    0,
   ],
   "fiberID": 3,
   "rootID": 1,
@@ -522,11 +592,7 @@ exports[`profiling FiberCommits should be collected for each rendered fiber: Fib
 Object {
   "commitDurations": Array [
     0,
-    0,
     1,
-    0,
-    2,
-    0,
   ],
   "fiberID": 4,
   "rootID": 1,
@@ -536,7 +602,9 @@ Object {
 exports[`profiling FiberCommits should be collected for each rendered fiber: FiberCommits: element 5 1`] = `
 Object {
   "commitDurations": Array [
-    0,
+    1,
+    1,
+    2,
     1,
   ],
   "fiberID": 5,
@@ -547,23 +615,10 @@ Object {
 exports[`profiling FiberCommits should be collected for each rendered fiber: FiberCommits: element 6 1`] = `
 Object {
   "commitDurations": Array [
-    1,
-    1,
     2,
-    1,
+    2,
   ],
   "fiberID": 6,
-  "rootID": 1,
-}
-`;
-
-exports[`profiling FiberCommits should be collected for each rendered fiber: FiberCommits: element 7 1`] = `
-Object {
-  "commitDurations": Array [
-    2,
-    2,
-  ],
-  "fiberID": 7,
   "rootID": 1,
 }
 `;
@@ -574,9 +629,9 @@ Object {
     Object {
       "actualDurations": Map {
         1 => 11,
-        3 => 11,
-        4 => 0,
-        5 => 1,
+        2 => 11,
+        3 => 0,
+        4 => 1,
       },
       "changeDescriptions": Map {},
       "commitIndex": 0,
@@ -585,28 +640,33 @@ Object {
       "rootID": 1,
       "selfDurations": Map {
         1 => 0,
-        3 => 10,
-        4 => 0,
-        5 => 1,
+        2 => 10,
+        3 => 0,
+        4 => 1,
       },
-      "updaters": Set {
-        2,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
     Object {
       "actualDurations": Map {
-        4 => 0,
-        6 => 1,
-        3 => 11,
+        3 => 0,
+        5 => 1,
+        2 => 11,
         1 => 11,
       },
       "changeDescriptions": Map {
-        4 => Object {
+        3 => Object {
           "didHooksChange": false,
           "props": Array [],
           "state": Array [],
         },
-        3 => Object {
+        2 => Object {
           "didHooksChange": false,
           "props": Array [
             "count",
@@ -619,35 +679,40 @@ Object {
       "priorityLevel": "Immediate",
       "rootID": 1,
       "selfDurations": Map {
-        4 => 0,
-        6 => 1,
-        3 => 10,
+        3 => 0,
+        5 => 1,
+        2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        1,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
     Object {
       "actualDurations": Map {
-        4 => 0,
-        6 => 1,
-        7 => 2,
-        3 => 13,
+        3 => 0,
+        5 => 1,
+        6 => 2,
+        2 => 13,
         1 => 13,
       },
       "changeDescriptions": Map {
-        4 => Object {
-          "didHooksChange": false,
-          "props": Array [],
-          "state": Array [],
-        },
-        6 => Object {
-          "didHooksChange": false,
-          "props": Array [],
-          "state": Array [],
-        },
         3 => Object {
+          "didHooksChange": false,
+          "props": Array [],
+          "state": Array [],
+        },
+        5 => Object {
+          "didHooksChange": false,
+          "props": Array [],
+          "state": Array [],
+        },
+        2 => Object {
           "didHooksChange": false,
           "props": Array [
             "count",
@@ -660,14 +725,19 @@ Object {
       "priorityLevel": "Immediate",
       "rootID": 1,
       "selfDurations": Map {
-        4 => 0,
-        6 => 1,
-        7 => 2,
-        3 => 10,
+        3 => 0,
+        5 => 1,
+        6 => 2,
+        2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        2,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
   ],
@@ -705,34 +775,34 @@ Object {
         1,
         11000,
         1,
-        3,
+        2,
         5,
         1,
         0,
         1,
         0,
         4,
-        3,
+        2,
         11000,
         1,
-        4,
+        3,
         5,
-        3,
-        3,
+        2,
+        2,
         2,
         3,
         4,
-        4,
+        3,
         0,
         1,
-        5,
+        4,
         8,
-        3,
-        3,
+        2,
+        2,
         2,
         0,
         4,
-        5,
+        4,
         1000,
       ],
       Uint32Array [
@@ -748,24 +818,24 @@ Object {
         1,
         49,
         1,
-        6,
         5,
-        3,
-        3,
+        5,
+        2,
+        2,
         1,
         2,
         4,
-        6,
+        5,
         1000,
         4,
-        3,
+        2,
         12000,
         3,
+        2,
         3,
         3,
-        4,
-        6,
         5,
+        4,
         4,
         1,
         12000,
@@ -783,25 +853,25 @@ Object {
         1,
         50,
         1,
-        7,
+        6,
         5,
-        3,
-        3,
+        2,
+        2,
         1,
         2,
         4,
-        7,
+        6,
         2000,
         4,
-        3,
+        2,
         14000,
         3,
+        2,
+        4,
         3,
-        4,
-        4,
-        6,
-        7,
         5,
+        6,
+        4,
         4,
         1,
         14000,
@@ -862,9 +932,9 @@ Object {
     Object {
       "actualDurations": Map {
         1 => 11,
-        3 => 11,
-        4 => 0,
-        5 => 1,
+        2 => 11,
+        3 => 0,
+        4 => 1,
       },
       "changeDescriptions": Map {},
       "commitIndex": 0,
@@ -880,28 +950,33 @@ Object {
       "rootID": 1,
       "selfDurations": Map {
         1 => 0,
-        3 => 10,
-        4 => 0,
-        5 => 1,
+        2 => 10,
+        3 => 0,
+        4 => 1,
       },
-      "updaters": Set {
-        2,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
     Object {
       "actualDurations": Map {
-        4 => 0,
-        6 => 1,
-        3 => 11,
+        3 => 0,
+        5 => 1,
+        2 => 11,
         1 => 11,
       },
       "changeDescriptions": Map {
-        4 => Object {
+        3 => Object {
           "didHooksChange": false,
           "props": Array [],
           "state": Array [],
         },
-        3 => Object {
+        2 => Object {
           "didHooksChange": false,
           "props": Array [
             "count",
@@ -921,13 +996,18 @@ Object {
       "priorityLevel": "Immediate",
       "rootID": 1,
       "selfDurations": Map {
-        4 => 0,
-        6 => 1,
-        3 => 10,
+        3 => 0,
+        5 => 1,
+        2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        1,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
   ],
@@ -984,34 +1064,34 @@ Object {
         1,
         11000,
         1,
-        3,
+        2,
         5,
         1,
         0,
         1,
         0,
         4,
-        3,
+        2,
         11000,
         1,
-        4,
+        3,
         5,
-        3,
-        3,
+        2,
+        2,
         2,
         3,
         4,
-        4,
+        3,
         0,
         1,
-        5,
+        4,
         8,
-        3,
-        3,
+        2,
+        2,
         2,
         0,
         4,
-        5,
+        4,
         1000,
       ],
       Uint32Array [
@@ -1027,24 +1107,24 @@ Object {
         1,
         49,
         1,
-        6,
         5,
-        3,
-        3,
+        5,
+        2,
+        2,
         1,
         2,
         4,
-        6,
+        5,
         1000,
         4,
-        3,
+        2,
         12000,
         3,
+        2,
         3,
         3,
-        4,
-        6,
         5,
+        4,
         4,
         1,
         12000,
@@ -1136,8 +1216,13 @@ Object {
         2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        1,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
     Object {
@@ -1169,8 +1254,13 @@ Object {
         2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        7,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
     Object {
@@ -1195,8 +1285,13 @@ Object {
         2 => 10,
         1 => 0,
       },
-      "updaters": Set {
-        1,
+      "updaters": Map {
+        1 => Object {
+          "displayName": null,
+          "id": 1,
+          "key": null,
+          "type": 11,
+        },
       },
     },
   ],

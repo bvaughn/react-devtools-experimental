@@ -1,5 +1,6 @@
 // @flow
 
+import type { SerializedElement } from 'src/devtools/views/Components/types';
 import type { ElementType } from 'src/types';
 import type {
   CommitDetailsBackend,
@@ -53,7 +54,7 @@ export type CommitDetailsFrontend = {|
   priorityLevel: string | null,
   rootID: number,
   selfDurations: Map<number, number>,
-  updaters: Set<number> | null,
+  updaters: Map<number, SerializedElement> | null,
 |};
 
 export type FiberCommitsFrontend = {|
