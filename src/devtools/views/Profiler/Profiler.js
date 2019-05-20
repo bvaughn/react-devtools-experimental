@@ -16,6 +16,7 @@ import Interactions from './Interactions';
 import RecordToggle from './RecordToggle';
 import ReloadAndProfileButton from './ReloadAndProfileButton';
 import ProfilingImportExportButtons from './ProfilingImportExportButtons';
+import RootSelector from './RootSelector';
 import SnapshotSelector from './SnapshotSelector';
 import SidebarCommitInfo from './SidebarCommitInfo';
 import SidebarInteractions from './SidebarInteractions';
@@ -170,6 +171,7 @@ function SuspendingProfiler() {
             size="small"
             tabs={tabs}
           />
+          <RootSelector />
           <div className={styles.Spacer} />
           <ToggleCommitFilterModalButton />
           <div className={styles.VRule} />

@@ -2073,24 +2073,32 @@ export function attach(
     };
   }
 
-  function getExportedProfilingData(
-    rootID: number
-  ): ExportedProfilingDataFromRenderer {
-    const commitDetailsForEachCommit = [];
-    const commitProfilingMetadata = ((rootToCommitProfilingMetadataMap: any): CommitProfilingMetadataMap).get(
-      rootID
-    );
-    if (commitProfilingMetadata != null) {
-      for (let index = 0; index < commitProfilingMetadata.length; index++) {
-        commitDetailsForEachCommit.push(getCommitDetails(rootID, index));
+  function getExportedProfilingData(): ExportedProfilingDataFromRenderer {
+    const profilingSummaries: Array<ProfilingSummaryBackend> = [];
+    const commitDetails: Array<Array<CommitDetailsBackend>> = [];
+    const interactions: Array<InteractionsBackend> = [];
+
+    const rootIDs = hook.getFiberRoots(rendererID);
+    rootIDs.forEach(rootID => {
+      const commitDetailsForEachCommit = [];
+      const commitProfilingMetadata = ((rootToCommitProfilingMetadataMap: any): CommitProfilingMetadataMap).get(
+        rootID
+      );
+      if (commitProfilingMetadata != null) {
+        for (let index = 0; index < commitProfilingMetadata.length; index++) {
+          commitDetailsForEachCommit.push(getCommitDetails(rootID, index));
+        }
       }
-    }
+      commitDetails.push(commitDetailsForEachCommit);
+      interactions.push(getInteractions(rootID));
+      profilingSummaries.push(getProfilingSummary(rootID));
+    });
 
     return {
       version: PROFILER_EXPORT_VERSION,
-      profilingSummary: getProfilingSummary(rootID),
-      commitDetails: commitDetailsForEachCommit,
-      interactions: getInteractions(rootID),
+      commitDetails,
+      interactions,
+      profilingSummaries,
     };
   }
 

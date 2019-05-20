@@ -28,33 +28,39 @@ export const prepareExportedProfilingSummary = (
   profilingOperations: Map<number, Array<Uint32Array>>,
   profilingSnapshots: Map<number, Map<number, ProfilingSnapshotNode>>,
   rendererID: number,
-  rootID: number
+  rootIDs: $ReadOnlyArray<number>
 ) => {
-  const profilingOperationsForRoot = [];
-  const operations = profilingOperations.get(rootID);
-  if (operations != null) {
-    operations.forEach(operationsTypedArray => {
-      // Convert typed array to plain array before JSON serialization, or it will be converted to an Object.
-      const operationsPlainArray = Array.from(operationsTypedArray);
-      profilingOperationsForRoot.push(operationsPlainArray);
-    });
-  }
+  const profilingOperationsByRootID = [];
+  const profilingSnapshotsByRootID = [];
 
-  // Convert Map to Array of key-value pairs or JSON.stringify will clobber the contents.
-  const profilingSnapshotsForRoot = [];
-  const profilingSnapshotsMap = profilingSnapshots.get(rootID);
-  if (profilingSnapshotsMap != null) {
-    for (const [elementID, snapshotNode] of profilingSnapshotsMap.entries()) {
-      profilingSnapshotsForRoot.push([elementID, snapshotNode]);
+  rootIDs.forEach(rootID => {
+    const profilingOperationsForRoot = [];
+    const operations = profilingOperations.get(rootID);
+    if (operations != null) {
+      operations.forEach(operationsTypedArray => {
+        // Convert typed array to plain array before JSON serialization, or it will be converted to an Object.
+        const operationsPlainArray = Array.from(operationsTypedArray);
+        profilingOperationsForRoot.push(operationsPlainArray);
+      });
     }
-  }
+    profilingOperationsByRootID.push([rootID, profilingOperationsForRoot]);
+
+    // Convert Map to Array of key-value pairs or JSON.stringify will clobber the contents.
+    const profilingSnapshotsForRoot = [];
+    const profilingSnapshotsMap = profilingSnapshots.get(rootID);
+    if (profilingSnapshotsMap != null) {
+      for (const [elementID, snapshotNode] of profilingSnapshotsMap.entries()) {
+        profilingSnapshotsForRoot.push([elementID, snapshotNode]);
+      }
+    }
+    profilingSnapshotsByRootID.push([rootID, profilingSnapshotsForRoot]);
+  });
 
   const exportedProfilingSummary: ExportedProfilingSummaryFromFrontend = {
     version: PROFILER_EXPORT_VERSION,
-    profilingOperationsByRootID: [[rootID, profilingOperationsForRoot]],
-    profilingSnapshotsByRootID: [[rootID, profilingSnapshotsForRoot]],
+    profilingOperationsByRootID,
+    profilingSnapshotsByRootID,
     rendererID,
-    rootID,
   };
   return exportedProfilingSummary;
 };
@@ -79,13 +85,13 @@ export const prepareExportedProfilingData = (
   }
   const exportedProfilingData: ExportedProfilingData = {
     version: PROFILER_EXPORT_VERSION,
-    profilingSummary: exportedProfilingDataFromRenderer.profilingSummary,
     commitDetails: exportedProfilingDataFromRenderer.commitDetails,
     interactions: exportedProfilingDataFromRenderer.interactions,
     profilingOperationsByRootID:
       exportedProfilingSummary.profilingOperationsByRootID,
     profilingSnapshotsByRootID:
       exportedProfilingSummary.profilingSnapshotsByRootID,
+    profilingSummaries: exportedProfilingDataFromRenderer.profilingSummaries,
   };
   return exportedProfilingData;
 };

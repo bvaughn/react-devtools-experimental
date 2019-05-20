@@ -20,6 +20,9 @@ import type { ImportedProfilingData } from './types';
 
 export type TabID = 'flame-chart' | 'ranked-chart' | 'interactions';
 
+// TODO (profiling selector) Maybe replace multiple useState() with useReducer()
+// TODO (profiling selector) Maybe separate state and dispatcher contexts like TreeContext does
+
 type Context = {|
   // Which tab is selexted in the Profiler UI?
   selectedTabID: TabID,
@@ -36,11 +39,13 @@ type Context = {|
   stopProfiling(value: boolean): void,
 
   // Which renderer and root should profiling data be shown for?
-  // Often this will correspond to the selected renderer and root in the Elements panel.
-  // If nothing is selected though, this will default to the first root.
+  // This value should be initialized to either:
+  // 1. The selected root in the Components tree (if it has any profiling data) or
+  // 2. The first root in the list with profiling data.
   rendererID: number | null,
   rootID: number | null,
   rootHasProfilingData: boolean,
+  selectRootID: (id: number) => void,
 
   // Controls whether commits are filtered by duration.
   // This value is controlled by a filter toggle UI in the Profiler toolbar.
@@ -103,28 +108,71 @@ function ProfilerContextController({ children }: Props) {
     }),
     [store]
   );
+
+  const [rendererID, setRendererID] = useState<number | null>(null);
+  const [rootHasProfilingData, setRootHasProfilingData] = useState<boolean>(
+    false
+  );
+  const [rootID, setRootID] = useState<number | null>(null);
+
+  const storeProfilingState = useSubscription<StoreProfilingState, Store>(
+    subscription
+  );
   const {
     isProfiling,
     hasProfilingData,
     importedProfilingData,
-  } = useSubscription<StoreProfilingState, Store>(subscription);
+  } = storeProfilingState;
 
-  let rendererID = null;
-  let rootID = null;
-  let rootHasProfilingData = false;
-  if (importedProfilingData !== null) {
-    rootHasProfilingData = true;
-  } else if (selectedElementID !== null) {
-    rendererID = store.getRendererIDForElement(selectedElementID);
-    rootID = store.getRootIDForElement(selectedElementID);
-    rootHasProfilingData =
-      rootID === null ? false : store.profilingOperations.has(rootID);
-  } else if (store.roots.length > 0) {
-    // If no root is selected, assume the first root; many React apps are single root anyway.
-    rootID = store.roots[0];
-    rootHasProfilingData = store.profilingOperations.has(rootID);
-    rendererID = store.getRendererIDForElement(rootID);
+  const [
+    prevStoreProfilingState,
+    setPrevStoreProfilingState,
+  ] = useState<StoreProfilingState>(storeProfilingState);
+  if (prevStoreProfilingState !== storeProfilingState) {
+    setPrevStoreProfilingState(storeProfilingState);
+
+    if (store.importedProfilingData !== null) {
+      const { profilingOperations } = store.importedProfilingData;
+      const firstRootID = profilingOperations.keys().next().value;
+      setRootID(firstRootID || null);
+      setRendererID(null);
+      setRootHasProfilingData(firstRootID != null);
+    } else if (!isProfiling) {
+      setRootHasProfilingData(hasProfilingData);
+
+      if (rootID !== null && store.profilingOperations.has(rootID)) {
+        // If there is profiling data for the previously selected root, don't change it.
+      } else {
+        const componentsTreeRootID =
+          selectedElementID !== null
+            ? store.getRootIDForElement(selectedElementID)
+            : null;
+
+        if (
+          componentsTreeRootID !== null &&
+          store.profilingOperations.has(componentsTreeRootID)
+        ) {
+          // If there's profiling data for the element currently selected in the Components tree, use it.
+          setRootID(componentsTreeRootID);
+          setRendererID(store.getRendererIDForElement(componentsTreeRootID));
+        } else {
+          // Just select the first root by default
+          const firstRootID = store.profilingOperations.keys().next().value;
+          if (firstRootID != null) {
+            setRootID(firstRootID);
+            setRendererID(store.getRendererIDForElement(firstRootID));
+          }
+        }
+      }
+    } else {
+      setRootHasProfilingData(false);
+    }
   }
+
+  const selectRootID = useCallback((rootID: number) => {
+    setRendererID(store.getRendererIDForElement(rootID));
+    setRootID(rootID);
+  }, []);
 
   const startProfiling = useCallback(() => store.startProfiling(), [store]);
   const stopProfiling = useCallback(() => store.stopProfiling(), [store]);
@@ -194,6 +242,7 @@ function ProfilerContextController({ children }: Props) {
       rendererID,
       rootID,
       rootHasProfilingData,
+      selectRootID,
 
       isCommitFilterEnabled,
       setIsCommitFilterEnabled,
@@ -222,6 +271,7 @@ function ProfilerContextController({ children }: Props) {
       rendererID,
       rootID,
       rootHasProfilingData,
+      selectRootID,
 
       isCommitFilterEnabled,
       setIsCommitFilterEnabled,

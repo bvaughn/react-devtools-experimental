@@ -96,14 +96,17 @@ export type ExportedProfilingSummaryFromFrontend = {|
   profilingOperationsByRootID: SerializableProfilingDataOperationsByRootID,
   profilingSnapshotsByRootID: SerializableProfilingDataSnapshotsByRootID,
   rendererID: number,
-  rootID: number,
 |};
 
 export type ExportedProfilingData = {|
   version: 3,
+
+  // From frontend Store
   profilingOperationsByRootID: SerializableProfilingDataOperationsByRootID,
   profilingSnapshotsByRootID: SerializableProfilingDataSnapshotsByRootID,
+
+  // From backend renderer interface
   commitDetails: Array<CommitDetailsBackend>,
-  interactions: InteractionsBackend,
-  profilingSummary: ProfilingSummaryBackend,
+  interactions: Array<InteractionsBackend>,
+  profilingSummaries: Array<ProfilingSummaryBackend>,
 |};

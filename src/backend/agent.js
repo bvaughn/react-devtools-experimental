@@ -157,16 +157,14 @@ export default class Agent extends EventEmitter {
   exportProfilingSummary = (
     exportedProfilingSummary: ExportedProfilingSummaryFromFrontend
   ): void => {
-    const { rendererID, rootID } = exportedProfilingSummary;
+    const { rendererID } = exportedProfilingSummary;
     const renderer = this._rendererInterfaces[rendererID];
     if (renderer == null) {
       console.warn(`Invalid renderer id "${rendererID}"`);
       return;
     }
     try {
-      const exportedProfilingDataFromRenderer = renderer.getExportedProfilingData(
-        rootID
-      );
+      const exportedProfilingDataFromRenderer = renderer.getExportedProfilingData();
       const exportedProfilingData = prepareExportedProfilingData(
         exportedProfilingDataFromRenderer,
         exportedProfilingSummary

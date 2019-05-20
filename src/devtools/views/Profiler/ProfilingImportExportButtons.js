@@ -15,7 +15,7 @@ import styles from './ProfilingImportExportButtons.css';
 
 export default function ProfilingImportExportButtons() {
   const bridge = useContext(BridgeContext);
-  const { isProfiling, rendererID, rootHasProfilingData, rootID } = useContext(
+  const { isProfiling, rendererID, rootHasProfilingData } = useContext(
     ProfilerContext
   );
   const store = useContext(StoreContext);
@@ -25,24 +25,19 @@ export default function ProfilingImportExportButtons() {
   const { dispatch: modalDialogDispatch } = useContext(ModalDialogContext);
 
   const downloadData = useCallback(() => {
-    if (rendererID === null || rootID === null) {
+    if (rendererID === null) {
       return;
     }
 
     const exportedProfilingSummary = prepareExportedProfilingSummary(
       store.profilingOperations,
       store.profilingSnapshots,
-      rootID,
-      rendererID
+      rendererID,
+      store.roots,
     );
+
     bridge.send('exportProfilingSummary', exportedProfilingSummary);
-  }, [
-    bridge,
-    rendererID,
-    rootID,
-    store.profilingOperations,
-    store.profilingSnapshots,
-  ]);
+  }, [bridge, rendererID, store.profilingOperations, store.profilingSnapshots]);
 
   const uploadData = useCallback(() => {
     if (inputRef.current !== null) {

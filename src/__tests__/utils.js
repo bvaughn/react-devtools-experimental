@@ -158,7 +158,7 @@ export function exportImportHelper(
       store.profilingOperations,
       store.profilingSnapshots,
       rendererID,
-      rootID
+      store.roots,
     );
     bridge.send('exportProfilingSummary', exportProfilingSummary);
   });
