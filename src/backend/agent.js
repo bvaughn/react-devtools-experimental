@@ -472,7 +472,9 @@ export default class Agent extends EventEmitter {
     window.addEventListener('click', this._onClick, true);
     window.addEventListener('mousedown', this._onMouseDown, true);
     window.addEventListener('mouseup', this._onMouseUp, true);
-    window.addEventListener('mouseover', this._onMouseOver, true);
+    window.addEventListener('pointerover', this._onPointerOver, true);
+    window.addEventListener('pointerdown', this._onPointerDown, true);
+    window.addEventListener('pointerup', this._onPointerUp, true);
   };
 
   startProfiling = () => {
@@ -492,7 +494,9 @@ export default class Agent extends EventEmitter {
     window.removeEventListener('click', this._onClick, true);
     window.removeEventListener('mousedown', this._onMouseDown, true);
     window.removeEventListener('mouseup', this._onMouseUp, true);
-    window.removeEventListener('mouseover', this._onMouseOver, true);
+    window.removeEventListener('pointerover', this._onPointerOver, true);
+    window.removeEventListener('pointerdown', this._onPointerDown, true);
+    window.removeEventListener('pointerup', this._onPointerUp, true);
   };
 
   stopProfiling = () => {
@@ -589,6 +593,11 @@ export default class Agent extends EventEmitter {
   _onMouseDown = (event: MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
+  };
+
+  _onPointerDown = (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
 
     this._selectFiberForNode(((event.target: any): HTMLElement));
   };
@@ -601,7 +610,12 @@ export default class Agent extends EventEmitter {
     event.stopPropagation();
   };
 
-  _onMouseOver = (event: MouseEvent) => {
+  _onPointerUp = (event: MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  _onPointerOver = (event: MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
 
