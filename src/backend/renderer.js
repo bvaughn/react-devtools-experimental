@@ -39,6 +39,7 @@ import { inspectHooksOfFiber } from './ReactDebugHooks';
 import type {
   CommitDetailsBackend,
   DevToolsHook,
+  ExportedProfilingDataFromRenderer,
   Fiber,
   FiberCommitsBackend,
   InteractionBackend,
@@ -776,13 +777,13 @@ export function attach(
     if (existingID !== undefined) {
       return existingID;
     }
-    const id = pendingStringTable.size + 1;
-    pendingStringTable.set(str, id);
+    const stringID = pendingStringTable.size + 1;
+    pendingStringTable.set(str, stringID);
     // The string table total length needs to account
     // both for the string length, and for the array item
     // that contains the length itself. Hence + 1.
     pendingStringTableLength += str.length + 1;
-    return id;
+    return stringID;
   }
 
   function recordMount(fiber: Fiber, parentFiber: Fiber | null) {
@@ -2013,8 +2014,8 @@ export function attach(
 
     return {
       commitIndex,
-      interactions: [],
       durations: [],
+      interactions: [],
       rootID,
     };
   }
@@ -2095,20 +2096,23 @@ export function attach(
     };
   }
 
-  function getProfilingDataForDownload(rootID: number): Object {
-    const commitDetails = [];
+  function getExportedProfilingData(
+    rootID: number
+  ): ExportedProfilingDataFromRenderer {
+    const commitDetailsForEachCommit = [];
     const commitProfilingMetadata = ((rootToCommitProfilingMetadataMap: any): CommitProfilingMetadataMap).get(
       rootID
     );
     if (commitProfilingMetadata != null) {
       for (let index = 0; index < commitProfilingMetadata.length; index++) {
-        commitDetails.push(getCommitDetails(rootID, index));
+        commitDetailsForEachCommit.push(getCommitDetails(rootID, index));
       }
     }
+
     return {
       version: PROFILER_EXPORT_VERSION,
       profilingSummary: getProfilingSummary(rootID),
-      commitDetails,
+      commitDetails: commitDetailsForEachCommit,
       interactions: getInteractions(rootID),
     };
   }
@@ -2432,7 +2436,7 @@ export function attach(
     findNativeByFiberID,
     getOwnersList,
     getPathForElement,
-    getProfilingDataForDownload,
+    getExportedProfilingData,
     getProfilingSummary,
     handleCommitFiberRoot,
     handleCommitFiberUnmount,
