@@ -14,32 +14,23 @@ export function act(callback: Function): void {
   });
 
   // Flush Bridge operations
-  jest.runAllTimers();
+  TestUtils.act(() => {
+    jest.runAllTimers();
+  });
 }
 
-export async function actAsync(
-  callback: Function,
-  numTimesToFlush: number = 1
-): Promise<void> {
+export async function actAsync(cb: () => *): Promise<void> {
   const TestUtils = require('react-dom/test-utils');
-  const Scheduler = require('scheduler');
 
   // $FlowFixMe Flow doens't know about "await act()" yet
   await TestUtils.act(async () => {
-    callback();
-
-    // Resolve pending suspense promises
-    jest.runOnlyPendingTimers();
+    await cb();
   });
 
-  // Run cascading microtasks and flush scheduled React work.
-  // Components that suspend multiple times will need to do this once per suspend operation.
-  // HACK Ideally the mock scheduler would provide an API to ask if there was outstanding work.
-  while (--numTimesToFlush >= 0) {
+  while (jest.getTimerCount() > 0) {
     // $FlowFixMe Flow doens't know about "await act()" yet
     await TestUtils.act(async () => {
-      jest.runOnlyPendingTimers();
-      Scheduler.flushAll();
+      jest.runAllTimers();
     });
   }
 }
