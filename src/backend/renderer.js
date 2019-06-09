@@ -293,14 +293,21 @@ export function attach(
   };
 
   // Configurable Components tree filters.
-  const hideElementsWithDisplayNames: Set<RegExp> = new Set();
-  const hideElementsWithPaths: Set<RegExp> = new Set();
-  const hideElementsWithTypes: Set<ElementType> = new Set();
+  const hideElementsWithDisplayNamesMatching: Set<RegExp> = new Set();
+  const hideElementsWithDisplayNamesNotMatching: Set<RegExp> = new Set();
+  const hideElementsWithPathsMatching: Set<RegExp> = new Set();
+  const hideElementsWithPathsNotMatching: Set<RegExp> = new Set();
+  const hideElementsWithTypesMatching: Set<ElementType> = new Set();
+  const hideElementsWithTypesNotMatching: Set<ElementType> = new Set();
 
+  // TODO isInverted
   function applyComponentFilters(componentFilters: Array<ComponentFilter>) {
-    hideElementsWithTypes.clear();
-    hideElementsWithDisplayNames.clear();
-    hideElementsWithPaths.clear();
+    hideElementsWithTypesMatching.clear();
+    hideElementsWithTypesNotMatching.clear();
+    hideElementsWithDisplayNamesMatching.clear();
+    hideElementsWithDisplayNamesNotMatching.clear();
+    hideElementsWithPathsMatching.clear();
+    hideElementsWithPathsNotMatching.clear();
 
     componentFilters.forEach(componentFilter => {
       if (!componentFilter.isEnabled) {
@@ -310,21 +317,38 @@ export function attach(
       switch (componentFilter.type) {
         case ComponentFilterDisplayName:
           if (componentFilter.isValid && componentFilter.value !== '') {
-            hideElementsWithDisplayNames.add(
-              new RegExp(componentFilter.value, 'i')
-            );
+            const regExp = new RegExp(componentFilter.value, 'i');
+            if (componentFilter.isInverted) {
+              hideElementsWithDisplayNamesNotMatching.add(regExp);
+            } else {
+              hideElementsWithDisplayNamesMatching.add(regExp);
+            }
           }
           break;
         case ComponentFilterElementType:
-          hideElementsWithTypes.add(componentFilter.value);
+          if (componentFilter.isInverted) {
+            hideElementsWithTypesNotMatching.add(componentFilter.value);
+          } else {
+            hideElementsWithTypesMatching.add(componentFilter.value);
+          }
           break;
         case ComponentFilterLocation:
           if (componentFilter.isValid && componentFilter.value !== '') {
-            hideElementsWithPaths.add(new RegExp(componentFilter.value, 'i'));
+            const regExp = new RegExp(componentFilter.value, 'i');
+            if (componentFilter.isInverted) {
+              hideElementsWithPathsNotMatching.add(regExp);
+            } else {
+              hideElementsWithPathsMatching.add(regExp);
+            }
           }
           break;
         case ComponentFilterHOC:
-          hideElementsWithDisplayNames.add(new RegExp('\\('));
+          const regExp = new RegExp('\\(');
+          if (componentFilter.isInverted) {
+            hideElementsWithDisplayNamesNotMatching.add(regExp);
+          } else {
+            hideElementsWithDisplayNamesMatching.add(regExp);
+          }
           break;
         default:
           console.warn(
@@ -417,26 +441,50 @@ export function attach(
     }
 
     const elementType = getElementTypeForFiber(fiber);
-    if (hideElementsWithTypes.has(elementType)) {
+    if (hideElementsWithTypesMatching.has(elementType)) {
+      return true;
+    }
+    if (
+      hideElementsWithTypesNotMatching.size > 0 &&
+      !hideElementsWithTypesNotMatching.has(elementType)
+    ) {
       return true;
     }
 
-    if (hideElementsWithDisplayNames.size > 0) {
+    if (hideElementsWithDisplayNamesMatching.size > 0) {
       const displayName = getDisplayNameForFiber(fiber);
       if (displayName != null) {
-        for (let displayNameRegExp of hideElementsWithDisplayNames) {
+        for (let displayNameRegExp of hideElementsWithDisplayNamesMatching) {
           if (displayNameRegExp.test(displayName)) {
             return true;
           }
         }
       }
     }
+    if (hideElementsWithDisplayNamesNotMatching.size > 0) {
+      const displayName = getDisplayNameForFiber(fiber);
+      if (displayName != null) {
+        for (let displayNameRegExp of hideElementsWithDisplayNamesNotMatching) {
+          if (displayNameRegExp.test(displayName)) {
+          }
+        }
+      }
+    }
 
-    if (_debugSource != null && hideElementsWithPaths.size > 0) {
+    if (_debugSource != null) {
       const { fileName } = _debugSource;
-      for (let pathRegExp of hideElementsWithPaths) {
-        if (pathRegExp.test(fileName)) {
-          return true;
+      if (hideElementsWithPathsMatching.size > 0) {
+        for (let pathRegExp of hideElementsWithPathsMatching) {
+          if (pathRegExp.test(fileName)) {
+            return true;
+          }
+        }
+      }
+      if (hideElementsWithPathsNotMatching.size > 0) {
+        for (let pathRegExp of hideElementsWithPathsNotMatching) {
+          if (!pathRegExp.test(fileName)) {
+            return true;
+          }
         }
       }
     }

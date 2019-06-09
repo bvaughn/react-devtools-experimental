@@ -91,6 +91,7 @@ function ComponentFiltersModal({ store, setIsModalShowing }: Props) {
   const {
     addFilter,
     changeFilterType,
+    updateFilterInvert,
     updateFilterValueElementType,
     updateFilterValueRegExp,
     componentFilters,
@@ -176,11 +177,21 @@ function ComponentFiltersModal({ store, setIsModalShowing }: Props) {
                   </select>
                 </td>
                 <td className={styles.TableCell}>
-                  {componentFilter.type === ComponentFilterElementType &&
-                    'equals'}
-                  {(componentFilter.type === ComponentFilterLocation ||
-                    componentFilter.type === ComponentFilterDisplayName) &&
-                    'matches'}
+                  {componentFilter.type !== ComponentFilterHOC && (
+                    <select
+                      className={styles.Select}
+                      value={componentFilter.isInverted !== false}
+                      onChange={({ currentTarget }) =>
+                        updateFilterInvert(
+                          componentFilter,
+                          currentTarget.value === true
+                        )
+                      }
+                    >
+                      <option value={true}>matches</option>
+                      <option value={false}>does not match</option>
+                    </select>
+                  )}
                 </td>
                 <td className={styles.TableCell}>
                   {componentFilter.type === ComponentFilterElementType && (
@@ -287,6 +298,7 @@ function useComponentFilters() {
           type: ComponentFilterElementType,
           value: ElementTypeHostComponent,
           isEnabled: true,
+          isInverted: false,
         },
       ];
     });
@@ -302,6 +314,7 @@ function useComponentFilters() {
             cloned[index] = {
               type: ComponentFilterElementType,
               isEnabled: componentFilter.isEnabled,
+              isInverted: componentFilter.isInverted,
               value: ElementTypeHostComponent,
             };
           } else if (type === ComponentFilterDisplayName) {
@@ -309,6 +322,7 @@ function useComponentFilters() {
               type: ComponentFilterDisplayName,
               isEnabled: componentFilter.isEnabled,
               isValid: true,
+              isInverted: componentFilter.isInverted,
               value: '',
             };
           } else if (type === ComponentFilterLocation) {
@@ -316,15 +330,35 @@ function useComponentFilters() {
               type: ComponentFilterLocation,
               isEnabled: componentFilter.isEnabled,
               isValid: true,
+              isInverted: componentFilter.isInverted,
               value: '',
             };
           } else if (type === ComponentFilterHOC) {
             cloned[index] = {
               type: ComponentFilterHOC,
               isEnabled: componentFilter.isEnabled,
+              isInverted: componentFilter.isInverted,
               isValid: true,
             };
           }
+        }
+        return cloned;
+      });
+    },
+    []
+  );
+
+  const updateFilterInvert = useCallback(
+    (componentFilter: ComponentFilter, isInverted: boolean) => {
+      setComponentFilters(componentFilters => {
+        const cloned: Array<ComponentFilter> = [...componentFilters];
+        const index = componentFilters.indexOf(componentFilter);
+        if (index >= 0) {
+          // $FlowFixMe
+          cloned[index] = {
+            ...componentFilter,
+            isInverted,
+          };
         }
         return cloned;
       });
@@ -357,7 +391,10 @@ function useComponentFilters() {
 
   const updateFilterValueRegExp = useCallback(
     (componentFilter: ComponentFilter, value: string) => {
-      if (componentFilter.type === ComponentFilterElementType) {
+      if (
+        componentFilter.type !== ComponentFilterDisplayName &&
+        componentFilter.type !== ComponentFilterLocation
+      ) {
         throw Error('Invalid value for element type filter');
       }
 
@@ -438,6 +475,7 @@ function useComponentFilters() {
     componentFilters,
     removeFilter,
     saveFilters,
+    updateFilterInvert,
     toggleFilterIsEnabled,
     updateFilterValueElementType,
     updateFilterValueRegExp,

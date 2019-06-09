@@ -83,6 +83,8 @@ describe('Store component filters', () => {
 
     expect(store).toMatchSnapshot('4: hide class and function components');
 
+    // TODO Not isInverted
+
     act(
       () =>
         (store.componentFilters = [
@@ -140,6 +142,8 @@ describe('Store component filters', () => {
       () => (store.componentFilters = [utils.createDisplayNameFilter('B.z')])
     );
     expect(store).toMatchSnapshot('4: filter "B.z"');
+
+    // TODO Not isInverted
   });
 
   it('should filter by path', () => {
@@ -167,6 +171,8 @@ describe('Store component filters', () => {
     );
 
     expect(store).toMatchSnapshot('3: hide components in a made up fake path');
+
+    // TODO Not isInverted
   });
 
   it('should filter HOCs', () => {

@@ -60,9 +60,24 @@ export function beforeEachProfiling(): void {
   );
 }
 
+export function createElementTypeFilter(
+  elementType: ElementType,
+  isEnabled: boolean = true,
+  isInverted: boolean = false
+) {
+  const Types = require('src/types');
+  return {
+    type: Types.ComponentFilterElementType,
+    isEnabled,
+    isInverted,
+    value: elementType,
+  };
+}
+
 export function createDisplayNameFilter(
   source: string,
-  isEnabled: boolean = true
+  isEnabled: boolean = true,
+  isInverted: boolean = false
 ) {
   const Types = require('src/types');
   let isValid = true;
@@ -75,34 +90,28 @@ export function createDisplayNameFilter(
     type: Types.ComponentFilterDisplayName,
     isEnabled,
     isValid,
+    isInverted,
     value: source,
   };
 }
 
-export function createHOCFilter(isEnabled: boolean = true) {
+export function createHOCFilter(
+  isEnabled: boolean = true,
+  isInverted: boolean = false
+) {
   const Types = require('src/types');
   return {
     type: Types.ComponentFilterHOC,
     isEnabled,
+    isInverted,
     isValid: true,
-  };
-}
-
-export function createElementTypeFilter(
-  elementType: ElementType,
-  isEnabled: boolean = true
-) {
-  const Types = require('src/types');
-  return {
-    type: Types.ComponentFilterElementType,
-    isEnabled,
-    value: elementType,
   };
 }
 
 export function createLocationFilter(
   source: string,
-  isEnabled: boolean = true
+  isEnabled: boolean = true,
+  isInverted: boolean = false
 ) {
   const Types = require('src/types');
   let isValid = true;
@@ -115,6 +124,7 @@ export function createLocationFilter(
     type: Types.ComponentFilterLocation,
     isEnabled,
     isValid,
+    isInverted,
     value: source,
   };
 }

@@ -49,6 +49,7 @@ export type ComponentFilterType = 1 | 2 | 3 | 4;
 // We hide host components only by default.
 export type ElementTypeComponentFilter = {|
   isEnabled: boolean,
+  isInverted: boolean,
   type: 1,
   value: ElementType,
 |};
@@ -57,6 +58,7 @@ export type ElementTypeComponentFilter = {|
 // Path filters are only used when elements include debug source location.
 export type RegExpComponentFilter = {|
   isEnabled: boolean,
+  isInverted: boolean,
   isValid: boolean,
   type: 2 | 3,
   value: string,
@@ -64,6 +66,7 @@ export type RegExpComponentFilter = {|
 
 export type BooleanComponentFilter = {|
   isEnabled: boolean,
+  isInverted: boolean,
   isValid: boolean,
   type: 4,
 |};

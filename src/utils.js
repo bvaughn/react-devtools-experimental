@@ -75,8 +75,9 @@ export function getDefaultComponentFilters(): Array<ComponentFilter> {
   return [
     {
       type: ComponentFilterElementType,
-      value: ElementTypeHostComponent,
       isEnabled: true,
+      isInverted: false,
+      value: ElementTypeHostComponent,
     },
   ];
 }

@@ -1063,21 +1063,21 @@
     "@reach/observe-rect" "^1.0.3"
 
 "@reach/tooltip@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@reach/tooltip/-/tooltip-0.2.0.tgz#705da2c5487d3f611f3d40482b387b6f42825b8e"
-  integrity sha512-RKJkGR+w3vS+flGjcVL82SK016E6rzjG8wC4ZtFu03VCAxJyhveG0uaB3juv7Rx+u8CEwv2gxfWgfMWgrJ2cRA==
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@reach/tooltip/-/tooltip-0.2.1.tgz#70a80d6defedee53cedf5480cd3d37dfb20020d0"
+  integrity sha512-3O7oXoymNkEAolHN9WbuspY7mA3zIOrTaibmYkKFtGT6FgyBrAQyOQn1ZhBuSza6RjSIkEtFRpbDEKK1UJEI6A==
   dependencies:
     "@reach/auto-id" "0.2.0"
     "@reach/portal" "^0.2.1"
     "@reach/rect" "^0.2.1"
-    "@reach/utils" "^0.2.2"
+    "@reach/utils" "^0.2.3"
     "@reach/visually-hidden" "^0.1.4"
     prop-types "^15.7.2"
 
-"@reach/utils@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@reach/utils/-/utils-0.2.2.tgz#c3a05ae9fd1f921988ae8a89b5a0d28d1a2b92df"
-  integrity sha512-jYeIi46AA5jh2gfdXD/nInUYfeLp3girRafiajP7AVHF6B4hpYAzUSx/ZH4xmPyf5alut5rml2DHxrv+X+Xu+A==
+"@reach/utils@^0.2.2", "@reach/utils@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@reach/utils/-/utils-0.2.3.tgz#820f6a6af4301b4c5065cfc04bb89e6a3d1d723f"
+  integrity sha512-zM9rA8jDchr05giMhL95dPeYkK67cBQnIhCVrOKKqgWGsv+2GE/HZqeptvU4zqs0BvIqsThwov+YxVNVh5csTQ==
 
 "@reach/visually-hidden@^0.1.4":
   version "0.1.4"
@@ -9731,9 +9731,9 @@ react-is@0.0.0-50b50c26f, react-is@^0.0.0-50b50c26f:
   integrity sha512-9Y6ZvdOVmOxXs9mGuFy6eXHBww8RJCtJAh94b1hkbjhnW8Mb5ADScDoxJBVxcNuX9hvDkhENspC96ZQK1NIv3g==
 
 react-is@^16.8.1:
-  version "16.8.3"
-  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.8.3.tgz#4ad8b029c2a718fc0cfc746c8d4e1b7221e5387d"
-  integrity sha512-Y4rC1ZJmsxxkkPuMLwvKvlL1Zfpbcu+Bf4ZigkHup3v9EfdYhAlWAaVyA19olXq2o2mGn0w+dFKvk3pVVlYcIA==
+  version "16.8.6"
+  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.8.6.tgz#5bbc1e2d29141c9fbdfed456343fe2bc430a6a16"
+  integrity sha512-aUk3bHfZ2bRSVFFbbeVS4i+lNPZr3/WM5jT2J5omUVV1zzcs1nAaf3l51ctA5FFvCRbhrH0bdAsRRQddFJZPtA==
 
 react-is@^16.8.4:
   version "16.8.4"
