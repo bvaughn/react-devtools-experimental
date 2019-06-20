@@ -23,14 +23,12 @@ import styles from './DevTools.css';
 
 import './root.css';
 
-export type BrowserName = 'Chrome' | 'Firefox';
 export type BrowserTheme = 'dark' | 'light';
 export type TabID = 'components' | 'profiler' | 'settings';
 
 export type Props = {|
   bridge: Bridge,
-  browserName: BrowserName,
-  browserTheme: BrowserTheme,
+  browserTheme?: BrowserTheme,
   defaultTab?: TabID,
   showTabBar?: boolean,
   store: Store,
@@ -67,7 +65,6 @@ const tabs = [componentsTab, profilerTab];
 
 export default function DevTools({
   bridge,
-  browserName,
   browserTheme = 'light',
   defaultTab = 'components',
   componentsPortalContainer,
