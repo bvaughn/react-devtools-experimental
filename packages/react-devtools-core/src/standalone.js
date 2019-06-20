@@ -93,17 +93,42 @@ function onError({ code, message }) {
 function initialize(socket: WebSocket) {
   const listeners = [];
   socket.onmessage = event => {
-    const data = JSON.parse(((event.data: any): string));
-    listeners.forEach(fn => fn(data));
+    let data;
+    try {
+      if (typeof event.data === 'string') {
+        data = JSON.parse(event.data);
+      } else {
+        throw Error();
+      }
+    } catch (e) {
+      console.error(
+        '[React DevTools] Failed to parse JSON: ' + String(event.data)
+      );
+      return;
+    }
+    listeners.forEach(fn => {
+      try {
+        fn(data);
+      } catch (error) {
+        console.log('[React DevTools] Error calling listener', data);
+        throw error;
+      }
+    });
   };
 
   bridge = new Bridge({
     listen(fn) {
       listeners.push(fn);
+      return () => {
+        const index = listeners.indexOf(fn);
+        if (index >= 0) {
+          listeners.splice(index, 1);
+        }
+      };
     },
-    send(data) {
+    send(event: string, payload: any, transferable?: Array<any>) {
       if (socket.readyState === socket.OPEN) {
-        socket.send(JSON.stringify(data));
+        socket.send(JSON.stringify({ event, payload }));
       }
     },
   });

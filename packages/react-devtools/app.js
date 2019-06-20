@@ -19,6 +19,7 @@ app.on('ready', function() {
     width: 800,
     height: 600,
     icon: path.join(__dirname, 'icons/icon128.png'),
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
     },

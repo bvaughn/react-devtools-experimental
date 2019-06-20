@@ -67,9 +67,19 @@ export function connectToDevTools(options: ?ConnectOptions) {
     const bridge: Bridge = new Bridge({
       listen(fn) {
         messageListeners.push(fn);
+        return () => {
+          const index = messageListeners.indexOf(fn);
+          if (index >= 0) {
+            messageListeners.splice(index, 1);
+          }
+        };
       },
-      send(data) {
-        ws.send(JSON.stringify(data));
+      send(event: string, payload: any, transferable?: Array<any>) {
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ event, payload }));
+        } else {
+          bridge.emit('shutdown');
+        }
       },
     });
 
@@ -106,12 +116,12 @@ export function connectToDevTools(options: ?ConnectOptions) {
     messageListeners.forEach(fn => {
       try {
         fn(data);
-      } catch (e) {
+      } catch (error) {
         // jsc doesn't play so well with tracebacks that go into eval'd code,
         // so the stack trace here will stop at the `eval()` call. Getting the
         // message that caused the error is the best we can do for now.
-        console.log(data);
-        throw e;
+        console.log('[React DevTools] Error calling listener', data);
+        throw error;
       }
     });
   }

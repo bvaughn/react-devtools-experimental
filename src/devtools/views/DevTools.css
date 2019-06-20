@@ -16,6 +16,10 @@
   border-top: 1px solid var(--color-border);
   font-family: var(--font-family-sans);
   font-size: var(--font-size-sans-large);
+  user-select: none;
+
+  /* Electron drag area */
+  -webkit-app-region: drag;
 }
 
 .Spacer {
