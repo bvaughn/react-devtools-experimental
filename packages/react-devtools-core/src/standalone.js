@@ -8,7 +8,7 @@ import {
 import Bridge from 'src/bridge';
 import Store from 'src/devtools/store';
 import { Server } from 'ws';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { installHook } from 'src/hook';
 import DevTools from 'src/devtools/views/DevTools';
@@ -38,7 +38,7 @@ function setStatusListener(value: StatusListener) {
 
 let bridge: Bridge | null = null;
 let store: Store | null = null;
-let root;
+let root = null;
 
 const log = (...args) => console.log('[React DevTools]', ...args);
 log.warn = (...args) => console.warn('[React DevTools]', ...args);
@@ -170,8 +170,14 @@ function startServer(port?: number = 8097) {
   });
 
   httpServer.on('request', (req, res) => {
+    // NPM installs should read from node_modules,
+    // But local dev mode needs to use a relative path.
+    const basePath = existsSync('./node_modules/react-devtools-core')
+      ? 'node_modules/react-devtools-core'
+      : '../react-devtools-core';
+
     // Serve a file that immediately sets up the connection.
-    const backendFile = readFileSync(join(__dirname, 'backend.js'));
+    const backendFile = readFileSync(`${basePath}/dist/backend.js`);
     res.end(
       backendFile.toString() + '\n;ReactDevToolsBackend.connectToDevTools();'
     );
