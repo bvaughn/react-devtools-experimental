@@ -29,6 +29,17 @@ if (window.document) {
   });
 }
 
+function debug(methodName: string, ...args) {
+  if (__DEBUG__) {
+    console.log(
+      `%c[core/backend] %c${methodName}`,
+      'color: teal; font-weight: bold;',
+      'font-weight: bold;',
+      ...args
+    );
+  }
+}
+
 export function connectToDevTools(options: ?ConnectOptions) {
   const {
     host = 'localhost',
@@ -54,6 +65,8 @@ export function connectToDevTools(options: ?ConnectOptions) {
     return;
   }
 
+  let bridge: Bridge | null = null;
+
   const messageListeners = [];
   const uri = 'ws://' + host + ':' + port;
 
@@ -65,7 +78,7 @@ export function connectToDevTools(options: ?ConnectOptions) {
   ws.onerror = handleFailed;
   ws.onmessage = handleMessage;
   ws.onopen = function() {
-    const bridge: Bridge = new Bridge({
+    bridge = new Bridge({
       listen(fn) {
         messageListeners.push(fn);
         return () => {
@@ -77,9 +90,24 @@ export function connectToDevTools(options: ?ConnectOptions) {
       },
       send(event: string, payload: any, transferable?: Array<any>) {
         if (ws.readyState === ws.OPEN) {
+          if (__DEBUG__) {
+            debug('wall.send()', event, payload);
+          }
+
           ws.send(JSON.stringify({ event, payload }));
         } else {
-          bridge.emit('shutdown');
+          if (__DEBUG__) {
+            debug(
+              'wall.send()',
+              'Shutting down bridge because of closed WebSocket connection'
+            );
+          }
+
+          if (bridge !== null) {
+            bridge.emit('shutdown');
+          }
+
+          scheduleRetry();
         }
       },
     });
@@ -95,24 +123,32 @@ export function connectToDevTools(options: ?ConnectOptions) {
   };
 
   function handleClose() {
+    if (__DEBUG__) {
+      debug('WebSocket.onclose');
+    }
+
+    if (bridge !== null) {
+      bridge.emit('shutdown');
+    }
+
     scheduleRetry();
   }
 
-  function handleFailed() {}
+  function handleFailed() {
+    if (__DEBUG__) {
+      debug('WebSocket.onerror');
+    }
+
+    scheduleRetry();
+  }
 
   function handleMessage(event) {
     let data;
     try {
       if (typeof event.data === 'string') {
         data = JSON.parse(event.data);
-
         if (__DEBUG__) {
-          console.log(
-            '%c[core/backend] %cmessage:',
-            'color: teal; font-weight: bold;',
-            'font-weight: bold;',
-            String(event.data)
-          );
+          debug('WebSocket.onmessage', data);
         }
       } else {
         throw Error();

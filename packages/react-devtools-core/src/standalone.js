@@ -11,11 +11,10 @@ import Bridge from 'src/bridge';
 import Store from 'src/devtools/store';
 import { Server } from 'ws';
 import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
 import { installHook } from 'src/hook';
-import { __DEBUG__ } from 'src/constants';
 import DevTools from 'src/devtools/views/DevTools';
 import launchEditor from './launchEditor';
+import { __DEBUG__ } from 'src/constants';
 
 installHook(window);
 
@@ -114,16 +113,14 @@ function initialize(socket: WebSocket) {
         throw Error();
       }
     } catch (e) {
-      console.error(
-        '[React DevTools] Failed to parse JSON: ' + String(event.data)
-      );
+      log.error('Failed to parse JSON', event.data);
       return;
     }
     listeners.forEach(fn => {
       try {
         fn(data);
       } catch (error) {
-        console.log('[React DevTools] Error calling listener', data);
+        log.error('Error calling listener', data);
         throw error;
       }
     });
