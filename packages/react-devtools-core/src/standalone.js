@@ -2,6 +2,8 @@
 
 import { createElement } from 'react';
 import {
+  // $FlowFixMe Flow does not yet know about flushSync()
+  flushSync,
   // $FlowFixMe Flow does not yet know about createRoot()
   unstable_createRoot as createRoot,
 } from 'react-dom';
@@ -11,6 +13,7 @@ import { Server } from 'ws';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { installHook } from 'src/hook';
+import { __DEBUG__ } from 'src/constants';
 import DevTools from 'src/devtools/views/DevTools';
 import launchEditor from './launchEditor';
 
@@ -44,11 +47,17 @@ const log = (...args) => console.log('[React DevTools]', ...args);
 log.warn = (...args) => console.warn('[React DevTools]', ...args);
 log.error = (...args) => console.error('[React DevTools]', ...args);
 
+function safeUnmount() {
+  flushSync(() => {
+    if (root !== null) {
+      root.unmount();
+    }
+  });
+  root = null;
+}
+
 function reload() {
-  if (root !== null) {
-    root.unmount();
-    root = null;
-  }
+  safeUnmount();
 
   node.innerHTML = '';
 
@@ -69,19 +78,14 @@ function reload() {
 }
 
 function onDisconnected() {
-  if (root !== null) {
-    root.unmount();
-    root = null;
-  }
+  safeUnmount();
+
   node.innerHTML =
     '<div id="waiting"><h2>Waiting for React to connect…</h2></div>';
 }
 
 function onError({ code, message }) {
-  if (root !== null) {
-    root.unmount();
-    root = null;
-  }
+  safeUnmount();
 
   if (code === 'EADDRINUSE') {
     node.innerHTML = `<div id="waiting"><h2>Another instance of DevTools is running</h2></div>`;
@@ -97,6 +101,15 @@ function initialize(socket: WebSocket) {
     try {
       if (typeof event.data === 'string') {
         data = JSON.parse(event.data);
+
+        if (__DEBUG__) {
+          console.log(
+            '%c[core/backend] %cmessage:',
+            'color: teal; font-weight: bold;',
+            'font-weight: bold;',
+            String(event.data)
+          );
+        }
       } else {
         throw Error();
       }

@@ -505,23 +505,27 @@ export default class Agent extends EventEmitter<{|
       if (this._persistedSelection.rendererID === rendererID) {
         // Check if we can select a deeper match for the persisted selection.
         const renderer = this._rendererInterfaces[rendererID];
-        const prevMatch = this._persistedSelectionMatch;
-        const nextMatch = renderer.getBestMatchForTrackedPath();
-        this._persistedSelectionMatch = nextMatch;
-        const prevMatchID = prevMatch !== null ? prevMatch.id : null;
-        const nextMatchID = nextMatch !== null ? nextMatch.id : null;
-        if (prevMatchID !== nextMatchID) {
-          if (nextMatchID !== null) {
-            // We moved forward, unlocking a deeper node.
-            this._bridge.send('selectFiber', nextMatchID);
+        if (renderer == null) {
+          console.warn(`Invalid renderer id "${rendererID}"`);
+        } else {
+          const prevMatch = this._persistedSelectionMatch;
+          const nextMatch = renderer.getBestMatchForTrackedPath();
+          this._persistedSelectionMatch = nextMatch;
+          const prevMatchID = prevMatch !== null ? prevMatch.id : null;
+          const nextMatchID = nextMatch !== null ? nextMatch.id : null;
+          if (prevMatchID !== nextMatchID) {
+            if (nextMatchID !== null) {
+              // We moved forward, unlocking a deeper node.
+              this._bridge.send('selectFiber', nextMatchID);
+            }
           }
-        }
-        if (nextMatch !== null && nextMatch.isFullMatch) {
-          // We've just unlocked the innermost selected node.
-          // There's no point tracking it further.
-          this._persistedSelection = null;
-          this._persistedSelectionMatch = null;
-          renderer.setTrackedPath(null);
+          if (nextMatch !== null && nextMatch.isFullMatch) {
+            // We've just unlocked the innermost selected node.
+            // There's no point tracking it further.
+            this._persistedSelection = null;
+            this._persistedSelectionMatch = null;
+            renderer.setTrackedPath(null);
+          }
         }
       }
     }

@@ -4,6 +4,7 @@ import Agent from 'src/backend/agent';
 import Bridge from 'src/bridge';
 import { installHook } from 'src/hook';
 import { initBackend } from 'src/backend';
+import { __DEBUG__ } from 'src/constants';
 
 import type { DevToolsHook } from 'src/backend/types';
 
@@ -104,6 +105,15 @@ export function connectToDevTools(options: ?ConnectOptions) {
     try {
       if (typeof event.data === 'string') {
         data = JSON.parse(event.data);
+
+        if (__DEBUG__) {
+          console.log(
+            '%c[core/backend] %cmessage:',
+            'color: teal; font-weight: bold;',
+            'font-weight: bold;',
+            String(event.data)
+          );
+        }
       } else {
         throw Error();
       }

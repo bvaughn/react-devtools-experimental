@@ -1,7 +1,7 @@
 // @flow
 
 const { app, BrowserWindow } = require('electron'); // Module to create native browser window.
-const path = require('path');
+const { join } = require('path');
 
 const argv = require('minimist')(process.argv.slice(2));
 const projectRoots = argv._;
@@ -18,7 +18,7 @@ app.on('ready', function() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    icon: path.join(__dirname, 'icons/icon128.png'),
+    icon: join(__dirname, 'icons/icon128.png'),
     frame: false,
     webPreferences: {
       nodeIntegration: true,
