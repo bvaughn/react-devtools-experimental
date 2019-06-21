@@ -46,6 +46,17 @@ const log = (...args) => console.log('[React DevTools]', ...args);
 log.warn = (...args) => console.warn('[React DevTools]', ...args);
 log.error = (...args) => console.error('[React DevTools]', ...args);
 
+function debug(methodName: string, ...args) {
+  if (__DEBUG__) {
+    console.log(
+      `%c[core/standalone] %c${methodName}`,
+      'color: teal; font-weight: bold;',
+      'font-weight: bold;',
+      ...args
+    );
+  }
+}
+
 function safeUnmount() {
   flushSync(() => {
     if (root !== null) {
@@ -102,12 +113,7 @@ function initialize(socket: WebSocket) {
         data = JSON.parse(event.data);
 
         if (__DEBUG__) {
-          console.log(
-            '%c[core/backend] %cmessage:',
-            'color: teal; font-weight: bold;',
-            'font-weight: bold;',
-            String(event.data)
-          );
+          debug('WebSocket.onmessage', data);
         }
       } else {
         throw Error();
