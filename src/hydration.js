@@ -55,7 +55,7 @@ function getPropType(data: Object): string | null {
     return 'react_element';
   }
 
-  if (data instanceof HTMLElement) {
+  if (typeof HTMLElement !== 'undefined' && data instanceof HTMLElement) {
     return 'html_element';
   }
 

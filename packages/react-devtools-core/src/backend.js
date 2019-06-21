@@ -167,6 +167,7 @@ export function connectToDevTools(options: ?ConnectOptions) {
         // so the stack trace here will stop at the `eval()` call. Getting the
         // message that caused the error is the best we can do for now.
         console.log('[React DevTools] Error calling listener', data);
+        console.log('error:', error);
         throw error;
       }
     });
