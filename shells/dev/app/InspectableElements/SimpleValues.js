@@ -8,7 +8,6 @@ export default function SimpleValues() {
       string="abc"
       emptyString=""
       number={123}
-      boolean={true}
       undefined={undefined}
       null={null}
       nan={NaN}

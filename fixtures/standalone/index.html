@@ -180,7 +180,105 @@
         );
       }
 
-      ReactDOM.render(<List />, document.getElementById("root"));
+      function SimpleValues() {
+        return (
+          <ChildComponent
+            string="abc"
+            emptyString=""
+            number={123}
+            undefined={undefined}
+            null={null}
+            nan={NaN}
+            infinity={Infinity}
+            true={true}
+            false={false}
+          />
+        );
+      }
+
+      class Custom {
+        _number = 42;
+        get number() {
+          return this._number;
+        }
+      }
+
+      function CustomObject() {
+        return <ChildComponent customObject={new Custom()} />;
+      }
+
+      const object = {
+        string: "abc",
+        longString: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKJLMNOPQRSTUVWXYZ1234567890",
+        emptyString: "",
+        number: 123,
+        boolean: true,
+        undefined: undefined,
+        null: null
+      };
+
+      function ObjectProps() {
+        return (
+          <ChildComponent
+            object={{
+              outer: {
+                inner: object
+              }
+            }}
+            array={["first", "second", "third"]}
+            objectInArray={[object]}
+            arrayInObject={{ array: ["first", "second", "third"] }}
+            deepObject={{
+              // Known limitation: we won't go deeper than several levels.
+              // In the future, we might offer a way to request deeper access on demand.
+              a: {
+                b: {
+                  c: {
+                    d: {
+                      e: {
+                        f: {
+                          g: {
+                            h: {
+                              i: {
+                                j: 10
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }}
+          />
+        );
+      }
+
+      function ChildComponent(props: any) {
+        return null;
+      }
+
+      function InspectableElements() {
+        return (
+          <Fragment>
+            <SimpleValues />
+            <ObjectProps />
+            <CustomObject />
+          </Fragment>
+        );
+      }
+
+      function App() {
+        return (
+          <Fragment>
+            <List />
+            <InspectableElements />
+          </Fragment>
+        );
+      }
+
+      ReactDOM.render(<App />, document.getElementById("root"));
     </script>
   </body>
 </html>
