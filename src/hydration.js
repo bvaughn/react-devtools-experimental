@@ -51,6 +51,7 @@ type PropType =
   | 'date'
   | 'function'
   | 'html_element'
+  | 'infinity'
   | 'iterator'
   | 'nan'
   | 'null'
@@ -71,8 +72,6 @@ function getDataType(data: Object): PropType {
     return 'null';
   } else if (data === undefined) {
     return 'undefined';
-  } else if (Number.isNaN(data)) {
-    return 'nan';
   }
 
   if (isElement(data)) {
@@ -90,7 +89,13 @@ function getDataType(data: Object): PropType {
     case 'function':
       return 'function';
     case 'number':
-      return 'number';
+      if (Number.isNaN(data)) {
+        return 'nan';
+      } else if (!Number.isFinite(data)) {
+        return 'infinity';
+      } else {
+        return 'number';
+      }
     case 'object':
       if (Array.isArray(data)) {
         return 'array';
@@ -268,10 +273,11 @@ export function dehydrate(
         return object;
       }
 
+    case 'infinity':
     case 'nan':
     case 'undefined':
-      // NaN and undefined get converted to null when sent through a WebSocket.
-      // So we need to dehydrate+rehydrate them to preserve their type.
+      // Some values are lossy when sent through a WebSocket.
+      // We dehydrate+rehydrate them to preserve their type.
       cleaned.push(path);
       return {
         type,
@@ -313,7 +319,9 @@ export function hydrate(
 
     const value = parent[last];
 
-    if (value.type === 'nan') {
+    if (value.type === 'infinity') {
+      parent[last] = Infinity;
+    } else if (value.type === 'nan') {
       parent[last] = NaN;
     } else if (value.type === 'undefined') {
       parent[last] = undefined;

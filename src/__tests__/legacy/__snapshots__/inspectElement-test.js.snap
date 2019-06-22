@@ -179,6 +179,7 @@ Object {
   "props": {
     "boolean_false": false,
     "boolean_true": true,
+    "infinity": null,
     "integer_zero": 0,
     "integer_one": 1,
     "float": 1.23,

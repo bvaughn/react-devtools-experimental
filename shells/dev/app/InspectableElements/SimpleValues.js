@@ -12,6 +12,7 @@ export default function SimpleValues() {
       undefined={undefined}
       null={null}
       nan={NaN}
+      infinity={Infinity}
       true={true}
       false={false}
     />

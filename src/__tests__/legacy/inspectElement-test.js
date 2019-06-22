@@ -96,6 +96,7 @@ describe('InspectedElementContext', () => {
         <Example
           boolean_false={false}
           boolean_true={true}
+          infinity={Infinity}
           integer_zero={0}
           integer_one={1}
           float={1.23}
@@ -115,8 +116,9 @@ describe('InspectedElementContext', () => {
     expect(inspectedElement).toMatchSnapshot('1: Initial inspection');
 
     const { props } = inspectedElement.value;
-    expect(props.boolean_false).toEqual(false);
-    expect(props.boolean_true).toEqual(true);
+    expect(props.boolean_false).toBe(false);
+    expect(props.boolean_true).toBe(true);
+    expect(Number.isFinite(props.infinity)).toBe(false);
     expect(props.integer_zero).toEqual(0);
     expect(props.integer_one).toEqual(1);
     expect(props.float).toEqual(1.23);
