@@ -163,6 +163,10 @@ export default class Store extends EventEmitter<{|
 
     this._bridge = bridge;
     bridge.addListener('operations', this.onBridgeOperations);
+    bridge.addListener(
+      'overrideComponentFilters',
+      this.onBridgeOverrideComponentFilters
+    );
     bridge.addListener('shutdown', this.onBridgeShutdown);
     bridge.addListener(
       'isBackendStorageAPISupported',
@@ -963,6 +967,15 @@ export default class Store extends EventEmitter<{|
     }
 
     this.emit('mutated', [addedElementIDs, removedElementIDs]);
+  };
+
+  // Certain backends save filters on a per-domain basis.
+  // In order to prevent filter preferences and applied filters from being out of sync,
+  // this message enables the backend to override the frontend's current ("saved") filters.
+  onBridgeOverrideComponentFilters = (
+    componentFilters: Array<ComponentFilter>
+  ) => {
+    this._componentFilters = componentFilters;
   };
 
   onBridgeShutdown = () => {

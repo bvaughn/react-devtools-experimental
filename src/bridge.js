@@ -62,6 +62,7 @@ export default class Bridge extends EventEmitter<{|
   logElementToConsole: [ElementAndRendererID],
   operations: [Uint32Array],
   ownersList: [OwnersList],
+  overrideComponentFilters: [Array<ComponentFilter>],
   overrideContext: [OverrideValue],
   overrideHookState: [OverrideHookState],
   overrideProps: [OverrideValue],

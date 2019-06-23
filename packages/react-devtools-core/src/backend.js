@@ -5,7 +5,9 @@ import Bridge from 'src/bridge';
 import { installHook } from 'src/hook';
 import { initBackend } from 'src/backend';
 import { __DEBUG__ } from 'src/constants';
+import { getSavedComponentFilters, saveComponentFilters } from 'src/utils';
 
+import type { ComponentFilter } from 'src/types';
 import type { DevToolsHook } from 'src/backend/types';
 
 // TODO (npm-packages) setup RN style inspector
@@ -17,6 +19,14 @@ type ConnectOptions = {
   isAppActive?: () => boolean,
   websocket?: ?WebSocket,
 };
+
+// The renderer interface doesn't read saved component filters directly,
+// because they are generally stored in localStorage within the context of the extension.
+// Because of this it relies on the extension to pass filters through.
+// This particular shell also stores filters within the page,
+// but we still need to set the __REACT_DEVTOOLS_COMPONENT_FILTERS__ global for the renderer.
+let componentFilters: Array<ComponentFilter> = getSavedComponentFilters();
+window.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = componentFilters;
 
 installHook(window);
 
@@ -111,6 +121,24 @@ export function connectToDevTools(options: ?ConnectOptions) {
         }
       },
     });
+    bridge.addListener(
+      'updateComponentFilters',
+      (newComponentFilters: Array<ComponentFilter>) => {
+        componentFilters = newComponentFilters;
+        console.log('updateComponentFilters()', componentFilters);
+        saveComponentFilters(componentFilters);
+      }
+    );
+
+    // Component filters are saved so they can be applied after a reload
+    // (without waiting on the frontend to asynchronously send them).
+    // However since the backend loaded as a script within a page, filters are saved per-domain.
+    // This is different than the browser extension in a significant way.
+    // In order for the frontend and backend to stay in sync then,
+    // we need to notify the frontend to override its saved filters,
+    // and instead use the ones that the backend/renderer is using,
+    // otherwise filter preferences and applied filters will mismatch.
+    bridge.send('overrideComponentFilters', componentFilters);
 
     const agent = new Agent(bridge);
     agent.addListener('shutdown', () => {
