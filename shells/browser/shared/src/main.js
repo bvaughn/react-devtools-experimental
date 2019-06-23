@@ -129,7 +129,10 @@ function createPanelIfReactLoaded() {
         // Otherwise the Store may miss important initial tree op codes.
         inject(chrome.runtime.getURL('build/backend.js'));
 
-        const viewElementSource = createViewElementSource(bridge, store);
+        const viewElementSourceFunction = createViewElementSource(
+          bridge,
+          store
+        );
 
         root = createRoot(document.createElement('div'));
 
@@ -146,7 +149,7 @@ function createPanelIfReactLoaded() {
               settingsPortalContainer,
               showTabBar: false,
               store,
-              viewElementSource,
+              viewElementSourceFunction,
             })
           );
         };

@@ -31,12 +31,24 @@
   overflow: auto;
 }
 
+.DevToolsVersion {
+  font-size: var(--font-size-sans-normal);
+  margin-right: 0.5rem;
+}
+
 .DevToolsVersion:before {
+  font-size: var(--font-size-sans-large);
   content: 'DevTools ';
 }
 
-@media screen and (max-width: 350px) {
+@media screen and (max-width: 400px) {
   .DevToolsVersion:before {
     content: '';
+  }
+}
+
+@media screen and (max-width: 300px) {
+  .DevToolsVersion {
+    display: none;
   }
 }

@@ -20,6 +20,7 @@ app.on('ready', function() {
     height: 600,
     icon: join(__dirname, 'icons/icon128.png'),
     frame: false,
+    //titleBarStyle: 'customButtonsOnHover',
     webPreferences: {
       nodeIntegration: true,
     },

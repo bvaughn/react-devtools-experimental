@@ -16,6 +16,8 @@ import DevTools from 'src/devtools/views/DevTools';
 import launchEditor from './launchEditor';
 import { __DEBUG__ } from 'src/constants';
 
+import type { InspectedElement } from 'src/devtools/views/Components/types';
+
 installHook(window);
 
 export type StatusListener = (message: string) => void;
@@ -78,13 +80,23 @@ function reload() {
         bridge: ((bridge: any): Bridge),
         showTabBar: true,
         store: ((store: any): Store),
-        viewElementSource: source => {
-          // TODO (npm-packages) This isn't right
-          launchEditor(source.fileName, source.lineNumber, projectRoots);
-        },
+        viewElementSourceFunction,
+        viewElementSourceRequiresFileLocation: true,
       })
     );
   }, 100);
+}
+
+function viewElementSourceFunction(
+  id: number,
+  inspectedElement: InspectedElement
+): void {
+  const { source } = inspectedElement;
+  if (source !== null) {
+    launchEditor(source.fileName, source.lineNumber, projectRoots);
+  } else {
+    log.error('Cannot inspect element', id);
+  }
 }
 
 function onDisconnected() {
@@ -246,10 +258,10 @@ function startServer(port?: number = 8097) {
 }
 
 const DevtoolsUI = {
+  connectToSocket,
   setContentDOMNode,
   setProjectRoots,
   setStatusListener,
-  connectToSocket,
   startServer,
 };
 

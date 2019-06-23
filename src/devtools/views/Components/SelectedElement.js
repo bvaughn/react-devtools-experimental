@@ -34,7 +34,9 @@ export type Props = {||};
 export default function SelectedElement(_: Props) {
   const { inspectedElementID } = useContext(TreeStateContext);
   const dispatch = useContext(TreeDispatcherContext);
-  const viewElementSource = useContext(ViewElementSourceContext);
+  const { isFileLocationRequired, viewElementSourceFunction } = useContext(
+    ViewElementSourceContext
+  );
   const bridge = useContext(BridgeContext);
   const store = useContext(StoreContext);
   const { dispatch: modalDialogDispatch } = useContext(ModalDialogContext);
@@ -80,15 +82,19 @@ export default function SelectedElement(_: Props) {
   }, [bridge, inspectedElementID, store]);
 
   const viewSource = useCallback(() => {
-    if (viewElementSource != null && inspectedElementID !== null) {
-      viewElementSource(inspectedElementID);
+    if (viewElementSourceFunction != null && inspectedElementID !== null) {
+      viewElementSourceFunction(
+        inspectedElementID,
+        ((inspectedElement: any): InspectedElement)
+      );
     }
-  }, [inspectedElementID, viewElementSource]);
+  }, [inspectedElementID, viewElementSourceFunction]);
 
   const canViewSource =
     inspectedElement &&
     inspectedElement.canViewSource &&
-    viewElementSource !== null;
+    viewElementSourceFunction !== null &&
+    (!isFileLocationRequired || inspectedElement.source !== null);
 
   const isSuspended =
     element !== null &&
