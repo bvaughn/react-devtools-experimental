@@ -46,6 +46,7 @@ const LOCAL_STORAGE_RECORD_CHANGE_DESCRIPTIONS_KEY =
 type Config = {|
   isProfiling?: boolean,
   supportsCaptureScreenshots?: boolean,
+  supportsNativeInspection?: boolean,
   supportsReloadAndProfile?: boolean,
   supportsProfiling?: boolean,
 |};
@@ -114,6 +115,7 @@ export default class Store extends EventEmitter<{|
   // These options may be initially set by a confiugraiton option when constructing the Store.
   // In the case of "supportsProfiling", the option may be updated based on the injected renderers.
   _supportsCaptureScreenshots: boolean = false;
+  _supportsNativeInspection: boolean = false;
   _supportsProfiling: boolean = false;
   _supportsReloadAndProfile: boolean = false;
 
@@ -145,6 +147,7 @@ export default class Store extends EventEmitter<{|
 
       const {
         supportsCaptureScreenshots,
+        supportsNativeInspection,
         supportsProfiling,
         supportsReloadAndProfile,
       } = config;
@@ -153,6 +156,7 @@ export default class Store extends EventEmitter<{|
         this._captureScreenshots =
           localStorageGetItem(LOCAL_STORAGE_CAPTURE_SCREENSHOTS_KEY) === 'true';
       }
+      this._supportsNativeInspection = supportsNativeInspection !== false;
       if (supportsProfiling) {
         this._supportsProfiling = true;
       }
@@ -323,6 +327,10 @@ export default class Store extends EventEmitter<{|
 
   get supportsCaptureScreenshots(): boolean {
     return this._supportsCaptureScreenshots;
+  }
+
+  get supportsNativeInspection(): boolean {
+    return this._supportsNativeInspection;
   }
 
   get supportsProfiling(): boolean {

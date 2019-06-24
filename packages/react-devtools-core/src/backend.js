@@ -125,8 +125,22 @@ export function connectToDevTools(options: ?ConnectOptions) {
       'updateComponentFilters',
       (newComponentFilters: Array<ComponentFilter>) => {
         componentFilters = newComponentFilters;
-        console.log('updateComponentFilters()', componentFilters);
         saveComponentFilters(componentFilters);
+      }
+    );
+    bridge.addListener(
+      'selectElement',
+      ({ id, rendererID }: {| id: number, rendererID: number |}) => {
+        const renderer = agent.rendererInterfaces[rendererID];
+        if (renderer != null) {
+          // Send event for RN to highlight.
+          const nodes: ?Array<HTMLElement> = renderer.findNativeNodesForFiberID(
+            id
+          );
+          if (nodes != null && nodes[0] != null) {
+            agent.emit('showNativeHighlight', nodes[0]);
+          }
+        }
       }
     );
 

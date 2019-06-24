@@ -17,6 +17,7 @@ import {
 import setupHighlighter from './views/Highlighter';
 
 import type {
+  NativeType,
   OwnersList,
   PathFrame,
   PathMatch,
@@ -74,6 +75,8 @@ type PersistedSelection = {|
 |};
 
 export default class Agent extends EventEmitter<{|
+  hideNativeHighlight: [],
+  showNativeHighlight: [NativeType],
   shutdown: [],
 |}> {
   _bridge: Bridge;

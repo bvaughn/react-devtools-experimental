@@ -6,8 +6,6 @@ import Bridge from 'src/bridge';
 import Agent from 'src/backend/agent';
 import { hideOverlay, showOverlay } from './Highlighter';
 
-import type { RendererID, RendererInterface } from 'src/backend/types';
-
 export default function setup(bridge: Bridge, agent: Agent): void {
   bridge.addListener(
     'clearNativeElementHighlight',
@@ -80,8 +78,6 @@ export default function setup(bridge: Bridge, agent: Agent): void {
       }
 
       showOverlay(nodes, displayName, hideAfterTimeout);
-
-      // TODO (npm-packages) Send event for RN to highlight?
 
       if (openNativeElementsPanel) {
         window.__REACT_DEVTOOLS_GLOBAL_HOOK__.$0 = node;

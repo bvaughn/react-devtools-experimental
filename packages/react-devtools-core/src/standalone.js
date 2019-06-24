@@ -168,7 +168,7 @@ function initialize(socket: WebSocket) {
     socket.close();
   });
 
-  store = new Store(bridge);
+  store = new Store(bridge, { supportsNativeInspection: false });
 
   log('Connected');
   reload();

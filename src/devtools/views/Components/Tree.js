@@ -1,6 +1,7 @@
 // @flow
 
 import React, {
+  Fragment,
   Suspense,
   useState,
   useCallback,
@@ -284,8 +285,12 @@ export default function Tree(props: Props) {
     <TreeFocusedContext.Provider value={treeFocused}>
       <div className={styles.Tree} ref={treeRef}>
         <div className={styles.SearchInput}>
-          <InspectHostNodesToggle />
-          <div className={styles.VRule} />
+          {store.supportsNativeInspection && (
+            <Fragment>
+              <InspectHostNodesToggle />
+              <div className={styles.VRule} />
+            </Fragment>
+          )}
           <Suspense fallback={<Loading />}>
             {ownerID !== null ? <OwnersStack /> : <SearchInput />}
           </Suspense>
