@@ -323,6 +323,13 @@ export default class Agent extends EventEmitter<{|
     }
   };
 
+  selectNode(target: Object): void {
+    const id = this.getIDForNode(target);
+    if (id !== null) {
+      this._bridge.send('selectFiber', id);
+    }
+  }
+
   setRendererInterface(
     rendererID: RendererID,
     rendererInterface: RendererInterface
@@ -347,10 +354,7 @@ export default class Agent extends EventEmitter<{|
     if (target == null) {
       return;
     }
-    const id = this.getIDForNode(target);
-    if (id !== null) {
-      this._bridge.send('selectFiber', id);
-    }
+    this.selectNode(target);
   };
 
   shutdown = () => {

@@ -23,11 +23,16 @@ installHook(window);
 export type StatusListener = (message: string) => void;
 
 let node: HTMLElement = ((null: any): HTMLElement);
+let nodeWaitingToConnectHTML: string = '';
 let projectRoots: Array<string> = [];
 let statusListener: StatusListener = (message: string) => {};
 
 function setContentDOMNode(value: HTMLElement) {
   node = value;
+
+  // Save so we can restore the exact waiting message between sessions.
+  nodeWaitingToConnectHTML = node.innerHTML;
+
   return DevtoolsUI;
 }
 
@@ -102,8 +107,7 @@ function viewElementSourceFunction(
 function onDisconnected() {
   safeUnmount();
 
-  node.innerHTML =
-    '<div id="waiting"><h2>Waiting for React to connect…</h2></div>';
+  node.innerHTML = nodeWaitingToConnectHTML;
 }
 
 function onError({ code, message }) {
