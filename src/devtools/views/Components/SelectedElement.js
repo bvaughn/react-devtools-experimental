@@ -57,7 +57,7 @@ export default function SelectedElement(_: Props) {
     if (element !== null && inspectedElementID !== null) {
       const rendererID = store.getRendererIDForElement(inspectedElementID);
       if (rendererID !== null) {
-        bridge.send('highlightElementInDOM', {
+        bridge.send('highlightNativeElement', {
           displayName: element.displayName,
           hideAfterTimeout: true,
           id: inspectedElementID,
@@ -82,13 +82,13 @@ export default function SelectedElement(_: Props) {
   }, [bridge, inspectedElementID, store]);
 
   const viewSource = useCallback(() => {
-    if (viewElementSourceFunction != null && inspectedElementID !== null) {
+    if (viewElementSourceFunction != null && inspectedElement !== null) {
       viewElementSourceFunction(
-        inspectedElementID,
+        inspectedElement.id,
         ((inspectedElement: any): InspectedElement)
       );
     }
-  }, [inspectedElementID, viewElementSourceFunction]);
+  }, [inspectedElement, viewElementSourceFunction]);
 
   const canViewSource =
     inspectedElement &&

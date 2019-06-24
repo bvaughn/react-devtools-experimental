@@ -77,14 +77,14 @@ export default function Tree(props: Props) {
   // Picking an element in the inspector should put focus into the tree.
   // This ensures that keyboard navigation works right after picking a node.
   useEffect(() => {
-    function handleStopInspectingDOM(didSelectNode) {
+    function handleStopInspectingNative(didSelectNode) {
       if (didSelectNode && focusTargetRef.current !== null) {
         focusTargetRef.current.focus();
       }
     }
-    bridge.addListener('stopInspectingDOM', handleStopInspectingDOM);
+    bridge.addListener('stopInspectingNative', handleStopInspectingNative);
     return () =>
-      bridge.removeListener('stopInspectingDOM', handleStopInspectingDOM);
+      bridge.removeListener('stopInspectingNative', handleStopInspectingNative);
   }, [bridge]);
 
   // This ref is passed down the context to elements.
@@ -187,12 +187,12 @@ export default function Tree(props: Props) {
     [dispatch, selectedElementID]
   );
 
-  const highlightElementInDOM = useCallback(
+  const highlightNativeElement = useCallback(
     (id: number) => {
       const element = store.getElementByID(id);
       const rendererID = store.getRendererIDForElement(id);
       if (element !== null) {
-        bridge.send('highlightElementInDOM', {
+        bridge.send('highlightNativeElement', {
           displayName: element.displayName,
           hideAfterTimeout: false,
           id,
@@ -220,15 +220,15 @@ export default function Tree(props: Props) {
     }
     if (isNavigatingWithKeyboard || didSelectNewSearchResult) {
       if (selectedElementID !== null) {
-        highlightElementInDOM(selectedElementID);
+        highlightNativeElement(selectedElementID);
       } else {
-        bridge.send('clearHighlightedElementInDOM');
+        bridge.send('clearNativeElementHighlight');
       }
     }
   }, [
     bridge,
     isNavigatingWithKeyboard,
-    highlightElementInDOM,
+    highlightNativeElement,
     searchIndex,
     searchResults,
     selectedElementID,
@@ -240,10 +240,10 @@ export default function Tree(props: Props) {
       // Ignore hover while we're navigating with keyboard.
       // This avoids flicker from the hovered nodes under the mouse.
       if (!isNavigatingWithKeyboard) {
-        highlightElementInDOM(id);
+        highlightNativeElement(id);
       }
     },
-    [isNavigatingWithKeyboard, highlightElementInDOM]
+    [isNavigatingWithKeyboard, highlightNativeElement]
   );
 
   const handleMouseMove = useCallback(() => {
@@ -253,7 +253,7 @@ export default function Tree(props: Props) {
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    bridge.send('clearHighlightedElementInDOM');
+    bridge.send('clearNativeElementHighlight');
   }, [bridge]);
 
   // Let react-window know to re-render any time the underlying tree data changes.
