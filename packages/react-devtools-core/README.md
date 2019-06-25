@@ -25,7 +25,7 @@ The `options` object may contain:
 * `host: string` (defaults to "localhost") - Websocket will connect to this host.
 * `port: number` (defaults to `8097`) - Websocket will connect to this port.
 * `websocket: Websocket` - Custom websocked to use. Overrides `host` and `port` settings if provided.
-* `resolveRNStyle: (style: number) => ?Object` - Used by the React Native style plug-in.
+* `resolveNativeStyle: (style: number) => ?Object` - Used by the React Native style plug-in.
 * `isAppActive: () => boolean` - If provided, DevTools will poll this method and wait until it returns true before connecting to React.
 
 ## `react-devtools-core/standalone`

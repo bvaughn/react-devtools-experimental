@@ -17,6 +17,7 @@ import {
 import setupHighlighter from './views/Highlighter';
 
 import type {
+  InstanceAndStyle,
   NativeType,
   OwnersList,
   PathFrame,
@@ -164,6 +165,18 @@ export default class Agent extends EventEmitter<{|
   }) => {
     this._bridge.send('captureScreenshot', { commitIndex, rootID });
   };
+
+  getInstanceAndStyle({
+    id,
+    rendererID,
+  }: ElementAndRendererID): InstanceAndStyle | null {
+    const renderer = this._rendererInterfaces[rendererID];
+    if (renderer == null) {
+      console.warn(`Invalid renderer id "${rendererID}"`);
+      return null;
+    }
+    return renderer.getInstanceAndStyle(id);
+  }
 
   getIDForNode(node: Object): number | null {
     for (let rendererID in this._rendererInterfaces) {

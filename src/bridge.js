@@ -48,6 +48,24 @@ type InspectElementParams = {|
   path?: Array<string | number>,
 |};
 
+type NativeStyleEditor_RenameAttributeParams = {|
+  ...ElementAndRendererID,
+  oldName: string,
+  newName: string,
+  value: string,
+|};
+
+type NativeStyleEditor_SetValueParams = {|
+  ...ElementAndRendererID,
+  name: string,
+  value: string,
+|};
+
+type NativeStyleEditor_StyleParams = {|
+  ...ElementAndRendererID,
+  value: mixed,
+|};
+
 export default class Bridge extends EventEmitter<{|
   captureScreenshot: [{| commitIndex: number, rootID: number |}],
   clearNativeElementHighlight: [],
@@ -86,6 +104,13 @@ export default class Bridge extends EventEmitter<{|
   syncSelectionToNativeElementsPanel: [],
   updateComponentFilters: [Array<ComponentFilter>],
   viewElementSource: [ElementAndRendererID],
+
+  // React Native style editor plug-in.
+  NativeStyleEditor_GetStyle: [ElementAndRendererID],
+  NativeStyleEditor_Measure: [ElementAndRendererID],
+  NativeStyleEditor_RenameAttribute: [NativeStyleEditor_RenameAttributeParams],
+  NativeStyleEditor_SetValue: [NativeStyleEditor_SetValueParams],
+  NativeStyleEditor_Style: [NativeStyleEditor_StyleParams],
 |}> {
   _isShutdown: boolean = false;
   _messageQueue: Array<any> = [];

@@ -22,6 +22,7 @@ import type {
   DevToolsHook,
   GetFiberIDForNative,
   InspectedElementPayload,
+  InstanceAndStyle,
   NativeType,
   PathFrame,
   PathMatch,
@@ -582,6 +583,27 @@ export function attach(
     };
   }
 
+  // Fast path props lookup for React Native style editor.
+  function getInstanceAndStyle(id: number): InstanceAndStyle {
+    let instance = null;
+    let style = null;
+
+    const internalInstance = idToInternalInstanceMap.get(id);
+    if (internalInstance != null) {
+      instance = internalInstance._instance || null;
+
+      const element = internalInstance._currentElement;
+      if (element != null && element.props != null) {
+        style = element.props.style || null;
+      }
+    }
+
+    return {
+      instance,
+      style,
+    };
+  }
+
   function inspectElement(
     id: number,
     path?: Array<string | number>
@@ -879,6 +901,7 @@ export function attach(
     flushInitialOperations,
     getBestMatchForTrackedPath,
     getFiberIDForNative: getInternalIDForNative,
+    getInstanceAndStyle,
     findNativeNodesForFiberID: (id: number) => {
       const nativeNode = findNativeNodeForInternalID(id);
       return nativeNode == null ? null : [nativeNode];

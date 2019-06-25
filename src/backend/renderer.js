@@ -47,6 +47,7 @@ import type {
   Fiber,
   InspectedElement,
   InspectedElementPayload,
+  InstanceAndStyle,
   Owner,
   PathFrame,
   PathMatch,
@@ -1969,6 +1970,22 @@ export function attach(
     return owners;
   }
 
+  // Fast path props lookup for React Native style editor.
+  // Could use inspectElementRaw() but that would require shallow rendering hooks components,
+  // and could also mess with memoization.
+  function getInstanceAndStyle(id: number): InstanceAndStyle {
+    let instance = null;
+    let style = null;
+
+    let fiber = findCurrentFiberUsingSlowPathById(id);
+    if (fiber !== null) {
+      instance = fiber.stateNode;
+      style = fiber.memoizedProps.style;
+    }
+
+    return { instance, style };
+  }
+
   function inspectElementRaw(id: number): InspectedElement | null {
     let fiber = findCurrentFiberUsingSlowPathById(id);
     if (fiber == null) {
@@ -2837,6 +2854,7 @@ export function attach(
     flushInitialOperations,
     getBestMatchForTrackedPath,
     getFiberIDForNative,
+    getInstanceAndStyle,
     getOwnersList,
     getPathForElement,
     getProfilingData,

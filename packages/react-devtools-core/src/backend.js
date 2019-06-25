@@ -6,16 +6,16 @@ import { installHook } from 'src/hook';
 import { initBackend } from 'src/backend';
 import { __DEBUG__ } from 'src/constants';
 import { getSavedComponentFilters, saveComponentFilters } from 'src/utils';
+import setupNativeStyleEditor from 'src/backend/NativeStyleEditor/setupNativeStyleEditor';
 
 import type { ComponentFilter } from 'src/types';
 import type { DevToolsHook } from 'src/backend/types';
-
-// TODO (npm-packages) setup RN style inspector
+import type { ResolveNativeStyle } from 'src/backend/NativeStyleEditor/setupNativeStyleEditor';
 
 type ConnectOptions = {
   host?: string,
   port?: number,
-  resolveRNStyle?: (style: number) => ?Object,
+  resolveNativeStyle?: ResolveNativeStyle,
   isAppActive?: () => boolean,
   websocket?: ?WebSocket,
 };
@@ -31,13 +31,6 @@ window.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = componentFilters;
 installHook(window);
 
 const hook: DevToolsHook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
-
-if (window.document) {
-  // This shell is universal, and might be used inside a web app.
-  hook.on('react-devtools', agent => {
-    // TODO (npm-packages) setup highlighter plug-in
-  });
-}
 
 function debug(methodName: string, ...args) {
   if (__DEBUG__) {
@@ -55,7 +48,7 @@ export function connectToDevTools(options: ?ConnectOptions) {
     host = 'localhost',
     port = 8097,
     websocket,
-    // TODO (npm-packages) resolveRNStyle = null,
+    resolveNativeStyle = null,
     isAppActive = () => true,
   } = options || {};
 
@@ -160,6 +153,11 @@ export function connectToDevTools(options: ?ConnectOptions) {
       // and that caused the 'shutdown' event on the `agent`, so we don't need to call `bridge.shutdown()` here.
       hook.emit('shutdown');
     });
+
+    // Setup React Native style editor if the environment supports it.
+    if (resolveNativeStyle !== null) {
+      setupNativeStyleEditor(bridge, agent, resolveNativeStyle);
+    }
 
     initBackend(hook, agent, window);
   };

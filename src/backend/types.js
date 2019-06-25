@@ -249,12 +249,18 @@ export type InspectedElementPayload =
   | InspectElementNoChange
   | InspectElementNotFound;
 
+export type InstanceAndStyle = {|
+  instance: Object | null,
+  style: Object | null,
+|};
+
 export type RendererInterface = {
   cleanup: () => void,
   findNativeNodesForFiberID: FindNativeNodesForFiberID,
   flushInitialOperations: () => void,
   getBestMatchForTrackedPath: () => PathMatch | null,
   getFiberIDForNative: GetFiberIDForNative,
+  getInstanceAndStyle(id: number): InstanceAndStyle,
   getProfilingData(): ProfilingDataBackend,
   getOwnersList: (id: number) => Array<Owner> | null,
   getPathForElement: (id: number) => Array<PathFrame> | null,
