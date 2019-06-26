@@ -678,12 +678,7 @@ export default class Store extends EventEmitter<{|
     }
   };
 
-  onBridgeOperations = (operations: Uint32Array) => {
-    if (!(operations instanceof Uint32Array)) {
-      // $FlowFixMe TODO HACK Temporary workaround for the fact that Chrome is not transferring the typed array.
-      operations = Uint32Array.from(Object.values(operations));
-    }
-
+  onBridgeOperations = (operations: Array<number>) => {
     if (__DEBUG__) {
       console.groupCollapsed('onBridgeOperations');
       debug('onBridgeOperations', operations.join(','));

@@ -857,7 +857,7 @@ export function attach(
   let pendingOperations: Array<number> = [];
   let pendingRealUnmountedIDs: Array<number> = [];
   let pendingSimulatedUnmountedIDs: Array<number> = [];
-  let pendingOperationsQueue: Array<Uint32Array> | null = [];
+  let pendingOperationsQueue: Array<Array<number>> | null = [];
   let pendingStringTable: Map<string, number> = new Map();
   let pendingStringTableLength: number = 0;
   let pendingUnmountedRootID: number | null = null;
@@ -894,7 +894,7 @@ export function attach(
       pendingSimulatedUnmountedIDs.length +
       (pendingUnmountedRootID === null ? 0 : 1);
 
-    const operations = new Uint32Array(
+    const operations = new Array(
       // Identify which renderer this update is coming from.
       2 + // [rendererID, rootFiberID]
       // How big is the string table?
@@ -920,7 +920,10 @@ export function attach(
     operations[i++] = pendingStringTableLength;
     pendingStringTable.forEach((value, key) => {
       operations[i++] = key.length;
-      operations.set(utfEncodeString(key), i);
+      const encodedKey = utfEncodeString(key);
+      for (let j = 0; j < encodedKey.length; j++) {
+        operations[i + j] = encodedKey[j];
+      }
       i += key.length;
     });
 
@@ -940,7 +943,9 @@ export function attach(
       // They go *after* the real unmounts because we know for sure they won't be
       // children of already pushed "real" IDs. If they were, we wouldn't be able
       // to discover them during the traversal, as they would have been deleted.
-      operations.set(pendingSimulatedUnmountedIDs, i);
+      for (let j = 0; j < pendingSimulatedUnmountedIDs.length; j++) {
+        operations[i + j] = pendingSimulatedUnmountedIDs[j];
+      }
       i += pendingSimulatedUnmountedIDs.length;
       // The root ID should always be unmounted last.
       if (pendingUnmountedRootID !== null) {
@@ -949,7 +954,10 @@ export function attach(
       }
     }
     // Fill in the rest of the operations.
-    operations.set(pendingOperations, i);
+    for (let j = 0; j < pendingOperations.length; j++) {
+      operations[i + j] = pendingOperations[j];
+    }
+    i += pendingOperations.length;
 
     // Let the frontend know about tree operations.
     // The first value in this array will identify which root it corresponds to,

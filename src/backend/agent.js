@@ -420,7 +420,7 @@ export default class Agent extends EventEmitter<{|
     }
   };
 
-  onHookOperations = (operations: Uint32Array) => {
+  onHookOperations = (operations: Array<number>) => {
     if (__DEBUG__) {
       debug('onHookOperations', operations);
     }

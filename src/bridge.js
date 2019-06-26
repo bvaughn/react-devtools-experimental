@@ -78,7 +78,7 @@ export default class Bridge extends EventEmitter<{|
   inspectedElement: [InspectedElementPayload],
   isBackendStorageAPISupported: [boolean],
   logElementToConsole: [ElementAndRendererID],
-  operations: [Uint32Array],
+  operations: [Array<number>],
   ownersList: [OwnersList],
   overrideComponentFilters: [Array<ComponentFilter>],
   overrideContext: [OverrideValue],
