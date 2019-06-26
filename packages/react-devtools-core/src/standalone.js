@@ -9,6 +9,7 @@ import {
 } from 'react-dom';
 import Bridge from 'src/bridge';
 import Store from 'src/devtools/store';
+import { getSavedComponentFilters } from 'src/utils';
 import { Server } from 'ws';
 import { existsSync, readFileSync } from 'fs';
 import { installHook } from 'src/hook';
@@ -226,7 +227,7 @@ function startServer(port?: number = 8097) {
     startServerTimeoutID = setTimeout(() => startServer(port), 1000);
   });
 
-  httpServer.on('request', (req, res) => {
+  httpServer.on('request', (request, response) => {
     // NPM installs should read from node_modules,
     // But local dev mode needs to use a relative path.
     const basePath = existsSync('./node_modules/react-devtools-core')
@@ -235,8 +236,21 @@ function startServer(port?: number = 8097) {
 
     // Serve a file that immediately sets up the connection.
     const backendFile = readFileSync(`${basePath}/dist/backend.js`);
-    res.end(
-      backendFile.toString() + '\n;ReactDevToolsBackend.connectToDevTools();'
+
+    // The renderer interface doesn't read saved component filters directly,
+    // because they are generally stored in localStorage within the context of the extension.
+    // Because of this it relies on the extension to pass filters, so include them wth the response here.
+    // This will ensure that saved filters are shared across different web pages.
+    const savedFiltersString = `window.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = ${JSON.stringify(
+      getSavedComponentFilters()
+    )};`;
+
+    response.end(
+      savedFiltersString +
+        '\n;' +
+        backendFile.toString() +
+        '\n;' +
+        'ReactDevToolsBackend.connectToDevTools();'
     );
   });
 

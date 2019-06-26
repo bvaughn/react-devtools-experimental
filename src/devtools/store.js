@@ -975,10 +975,14 @@ export default class Store extends EventEmitter<{|
   // Certain backends save filters on a per-domain basis.
   // In order to prevent filter preferences and applied filters from being out of sync,
   // this message enables the backend to override the frontend's current ("saved") filters.
+  // This action should also override the saved filters too,
+  // else reloading the frontend without reloading the backend would leave things out of sync.
   onBridgeOverrideComponentFilters = (
     componentFilters: Array<ComponentFilter>
   ) => {
     this._componentFilters = componentFilters;
+
+    saveComponentFilters(componentFilters);
   };
 
   onBridgeShutdown = () => {
