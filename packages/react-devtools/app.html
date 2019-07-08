@@ -35,6 +35,7 @@
         font-family: sans-serif;
         color: #aaa;
         flex: 1;
+        overflow: auto;
       }
       #waiting h2 {
         padding: 30px;
@@ -43,9 +44,14 @@
         padding: 0;
         margin: 0;
       }
-      #waiting input {
-        width: 300px;
-        font-family: monospace;
+      .input {
+        display: inline-block;
+        max-width: 100%;
+        font-weight: 100;
+        border: 1px solid #aaa;
+        padding: 0.125rem 0.25rem;
+        margin: 0.125rem;
+        color: #666;
       }
       #loading-status {
         margin-top: 10px;
@@ -62,8 +68,8 @@
           <br />
           <h4>React DOM</h4>
           <div>
-            Add <input id="localhost" /><br />
-            or <input id="byip" />
+            Add <span class="input" contenteditable="true" id="localhost"></span><br />
+            or <span class="input" contenteditable="true" id="byip"></span>
           </div>
           <div>
             to the top of the page you want to debug,
@@ -81,23 +87,30 @@
       const localIp = require("ip").address();
       const $ = document.querySelector.bind(document);
 
-      function selectAll() {
-        this.selectionStart = 0;
-        this.selectionEnd = this.value.length;
+      function selectAll(event) {
+        const element = event.target;
+       if (document.body.createTextRange) {
+         const range = document.body.createTextRange();
+         range.moveToElementText(element);
+         range.select();
+     } else if (window.getSelection) {
+         const selection = window.getSelection();        
+         const range = document.createRange();
+         range.selectNodeContents(element);
+         selection.removeAllRanges();
+         selection.addRange(range);
+       }
       }
 
-      // Set attributes below as well as values,
-      // so that innerHTML can be used to restore the initial markup between sessions.
-
       const $localhost = $("#localhost");
-      $localhost.value = `<script src="http://localhost:${port}"></` + 'script>';
-      $localhost.setAttribute('value', $localhost.value);
-      $localhost.onclick = selectAll;
+      $localhost.innerText = `<script src="http://localhost:${port}"></` + 'script>';
+      $localhost.addEventListener('click', selectAll);
+      $localhost.addEventListener('focus', selectAll);
 
       const $byIp = $("#byip");
-      $byIp.value = `<script src="http://${localIp}:${port}"></` + 'script>';
-      $byIp.setAttribute('value', $byIp.value);
-      $byIp.onclick = selectAll;
+      $byIp.innerText = `<script src="http://${localIp}:${port}"></` + 'script>';
+      $byIp.addEventListener('click', selectAll);
+      $byIp.addEventListener('focus', selectAll);
 
       let devtools;
       try {
