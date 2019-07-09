@@ -1,7 +1,7 @@
 // @flow
 
 import { existsSync } from 'fs';
-import { basename, join } from 'path';
+import { basename, join, isAbsolute } from 'path';
 import { execSync, spawn } from 'child_process';
 import { parse } from 'shell-quote';
 
@@ -107,12 +107,24 @@ export default function launchEditor(
   lineNumber: number,
   absoluteProjectRoots: Array<string>
 ) {
-  // We use relative paths at Facebook we deterministic builds.
+  // We use relative paths at Facebook with deterministic builds.
   // This is why our internal tooling calls React DevTools with absoluteProjectRoots.
   // If the filename is absolute then we don't need to care about this.
-  const filePath = [maybeRelativePath]
-    .concat(absoluteProjectRoots.map(root => join(root, maybeRelativePath)))
-    .find(combinedPath => existsSync(combinedPath));
+  let filePath;
+  if (isAbsolute(maybeRelativePath)) {
+    if (existsSync(maybeRelativePath)) {
+      filePath = maybeRelativePath;
+    }
+  } else {
+    for (let i = 0; i < absoluteProjectRoots.length; i++) {
+      const projectRoot = absoluteProjectRoots[i];
+      const joinedPath = join(projectRoot, maybeRelativePath);
+      if (existsSync(joinedPath)) {
+        filePath = joinedPath;
+        break;
+      }
+    }
+  }
 
   if (!filePath) {
     return;
