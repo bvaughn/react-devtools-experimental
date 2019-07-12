@@ -95,6 +95,8 @@ export default class Store extends EventEmitter<{|
   // If not, features like reload-and-profile will not work correctly and must be disabled.
   _isBackendStorageAPISupported: boolean = false;
 
+  _nativeStyleEditorValidAttributes: $ReadOnlyArray<string> | null = null;
+
   // Map of element (id) to the set of elements (ids) it owns.
   // This map enables getOwnersListForElement() to avoid traversing the entire tree.
   _ownersMap: Map<number, Set<number>> = new Map();
@@ -297,6 +299,10 @@ export default class Store extends EventEmitter<{|
 
   get hasOwnerMetadata(): boolean {
     return this._hasOwnerMetadata;
+  }
+
+  get nativeStyleEditorValidAttributes(): $ReadOnlyArray<string> | null {
+    return this._nativeStyleEditorValidAttributes;
   }
 
   get numElements(): number {
@@ -690,14 +696,15 @@ export default class Store extends EventEmitter<{|
     }
   };
 
-  onBridgeNativeStyleEditorSupported = (
-    isNativeStyleEditorSupported: boolean
-  ) => {
-    console.log(
-      '[bridge] onBridgeNativeStyleEditorSupported()',
-      isNativeStyleEditorSupported
-    );
-    this._isNativeStyleEditorSupported = isNativeStyleEditorSupported;
+  onBridgeNativeStyleEditorSupported = ({
+    isSupported,
+    validAttributes,
+  }: {|
+    isSupported: boolean,
+    validAttributes: $ReadOnlyArray<string>,
+  |}) => {
+    this._isNativeStyleEditorSupported = isSupported;
+    this._nativeStyleEditorValidAttributes = validAttributes || null;
 
     this.emit('supportsNativeStyleEditor');
   };

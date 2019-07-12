@@ -9,14 +9,11 @@ import type { StyleAndLayout } from './types';
 
 export type ResolveNativeStyle = (stylesheetID: number) => ?Object;
 
-// TODO Can ReactNativeViewConfigRegistry read valid styles for this?
-//      Can the ResolveNativeStyle function return the style object and the config? This would be hard (e.g. View -> RCTView)
-//      Or maybe we could eagerly send the ReactNativeViewViewConfig.validAttributes.styles (superset of all styles)
-
 export default function setupNativeStyleEditor(
   bridge: Bridge,
   agent: Agent,
-  resolveNativeStyle: ResolveNativeStyle
+  resolveNativeStyle: ResolveNativeStyle,
+  validAttributes?: $ReadOnlyArray<string> | null
 ) {
   bridge.addListener(
     'NativeStyleEditor_measure',
@@ -67,7 +64,10 @@ export default function setupNativeStyleEditor(
     }
   );
 
-  bridge.send('isNativeStyleEditorSupported', true);
+  bridge.send('isNativeStyleEditorSupported', {
+    isSupported: true,
+    validAttributes,
+  });
 }
 
 const EMPTY_BOX_STYLE = {

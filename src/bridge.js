@@ -102,7 +102,9 @@ export default class Bridge extends EventEmitter<{|
   viewElementSource: [ElementAndRendererID],
 
   // React Native style editor plug-in.
-  isNativeStyleEditorSupported: [true],
+  isNativeStyleEditorSupported: [
+    {| isSupported: boolean, validAttributes: $ReadOnlyArray<string> |},
+  ],
   NativeStyleEditor_measure: [ElementAndRendererID],
   NativeStyleEditor_renameAttribute: [NativeStyleEditor_RenameAttributeParams],
   NativeStyleEditor_setValue: [NativeStyleEditor_SetValueParams],

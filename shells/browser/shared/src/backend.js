@@ -67,6 +67,11 @@ function setup(hook) {
 
   // Setup React Native style editor if a renderer like react-native-web has injected it.
   if (!!hook.resolveRNStyle) {
-    setupNativeStyleEditor(bridge, agent, hook.resolveRNStyle);
+    setupNativeStyleEditor(
+      bridge,
+      agent,
+      hook.resolveRNStyle,
+      hook.nativeStyleEditorValidAttributes
+    );
   }
 }

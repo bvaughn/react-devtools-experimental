@@ -5,6 +5,15 @@
   border-top: 1px solid var(--color-border);
 }
 
+.HeaderRow {
+  display: flex;
+  align-items: center;
+}
+
+.Header {
+  flex: 1 1;
+}
+
 .Brackets {
   font-family: var(--font-family-sans);
   font-size: var(--font-size-sans-small);
@@ -17,17 +26,17 @@
   align-items: center;
 }
 
-.Attribute {
-  color: var(--color-attribute-name);
-}
-
-.ValueInvalid {
+.Invalid {
   background-color: var(--color-background-invalid);
   color: var(--color-text-invalid);
 
   --color-border: var(--color-text-invalid);
 }
-.ValueValid {
+.Attribute {
+  color: var(--color-attribute-name);
+}
+
+.Value {
   color: var(--color-attribute-value);
 }
 

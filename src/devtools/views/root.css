@@ -124,7 +124,7 @@
   --dark-color-selected-tree-highlight-inactive: rgba(255, 255, 255, 0.05);
   --dark-color-tab-selected-border: #178fb9;
   --dark-color-text: #ffffff;
-  --dark-color-text-invalid: #5c0000;
+  --dark-color-text-invalid: #ff8080;
   --dark-color-text-selected: #ffffff;
   --dark-color-toggle-background-invalid: #fc3a4b;
   --dark-color-toggle-background-on: #178fb9;

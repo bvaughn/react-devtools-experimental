@@ -2,7 +2,11 @@
 
 import React, { useContext, useMemo, useRef, useState } from 'react';
 import { unstable_batchedUpdates as batchedUpdates } from 'react-dom';
+import { copy } from 'clipboard-js';
 import { BridgeContext, StoreContext } from 'src/devtools/views/context';
+import Button from '../../Button';
+import ButtonIcon from '../../ButtonIcon';
+import { serializeDataForCopy } from '../../utils';
 import AutoSizeInput from './AutoSizeInput';
 import styles from './StyleEditor.css';
 
@@ -41,9 +45,18 @@ export default function StyleEditor({ id, style }: Props) {
 
   const keys = useMemo(() => Array.from(Object.keys(style)), [style]);
 
+  const handleCopy = () => copy(serializeDataForCopy(style));
+
   return (
     <div className={styles.StyleEditor}>
-      <div className={styles.Brackets}>{'style {'}</div>
+      <div className={styles.HeaderRow}>
+        <div className={styles.Header}>
+          <div className={styles.Brackets}>{'style {'}</div>
+        </div>
+        <Button onClick={handleCopy} title="Copy to clipboard">
+          <ButtonIcon type="copy" />
+        </Button>
+      </div>
       {keys.length > 0 &&
         keys.map(attribute => (
           <Row
@@ -51,10 +64,15 @@ export default function StyleEditor({ id, style }: Props) {
             attribute={attribute}
             changeAttribute={changeAttribute}
             changeValue={changeValue}
+            validAttributes={store.nativeStyleEditorValidAttributes}
             value={style[attribute]}
           />
         ))}
-      <NewRow changeAttribute={changeAttribute} changeValue={changeValue} />
+      <NewRow
+        changeAttribute={changeAttribute}
+        changeValue={changeValue}
+        validAttributes={store.nativeStyleEditorValidAttributes}
+      />
       <div className={styles.Brackets}>{'}'}</div>
     </div>
   );
@@ -63,9 +81,14 @@ export default function StyleEditor({ id, style }: Props) {
 type NewRowProps = {|
   changeAttribute: ChangeAttributeFn,
   changeValue: ChangeValueFn,
+  validAttributes: $ReadOnlyArray<string> | null,
 |};
 
-function NewRow({ changeAttribute, changeValue }: NewRowProps) {
+function NewRow({
+  changeAttribute,
+  changeValue,
+  validAttributes,
+}: NewRowProps) {
   const [key, setKey] = useState<number>(0);
   const reset = () => setKey(key + 1);
 
@@ -82,10 +105,12 @@ function NewRow({ changeAttribute, changeValue }: NewRowProps) {
 
   const changeValueWrapper = (attribute: string, value: any) => {
     // Blur events should reset/cancel if there's no value or no attribute
-    if (value !== '') {
-      changeValue(newAttributeRef.current, value);
+    if (newAttributeRef.current !== '') {
+      if (value !== '') {
+        changeValue(newAttributeRef.current, value);
+      }
+      reset();
     }
-    reset();
   };
 
   return (
@@ -95,6 +120,7 @@ function NewRow({ changeAttribute, changeValue }: NewRowProps) {
       attributePlaceholder="attribute"
       changeAttribute={changeAttributeWrapper}
       changeValue={changeValueWrapper}
+      validAttributes={validAttributes}
       value={''}
       valuePlaceholder="value"
     />
@@ -106,6 +132,7 @@ type RowProps = {|
   attributePlaceholder?: string,
   changeAttribute: ChangeAttributeFn,
   changeValue: ChangeValueFn,
+  validAttributes: $ReadOnlyArray<string> | null,
   value: any,
   valuePlaceholder?: string,
 |};
@@ -115,6 +142,7 @@ function Row({
   attributePlaceholder,
   changeAttribute,
   changeValue,
+  validAttributes,
   value,
   valuePlaceholder,
 }: RowProps) {
@@ -126,7 +154,20 @@ function Row({
 
   const [localAttribute, setLocalAttribute] = useState(attribute);
   const [localValue, setLocalValue] = useState(JSON.stringify(value));
+  const [isAttributeValid, setIsAttributeValid] = useState(true);
   const [isValueValid, setIsValueValid] = useState(true);
+
+  const validateAndSetLocalAttribute = attribute => {
+    const isValid =
+      attribute === '' ||
+      validAttributes === null ||
+      validAttributes.indexOf(attribute) >= 0;
+
+    batchedUpdates(() => {
+      setLocalAttribute(attribute);
+      setIsAttributeValid(isValid);
+    });
+  };
 
   const validateAndSetLocalValue = value => {
     let isValid = false;
@@ -159,7 +200,7 @@ function Row({
   };
 
   const submitAttributeChange = () => {
-    if (attribute !== localAttribute) {
+    if (isAttributeValid && attribute !== localAttribute) {
       changeAttribute(attribute, localAttribute, value);
     }
   };
@@ -167,8 +208,8 @@ function Row({
   return (
     <div className={styles.Row}>
       <Field
-        className={styles.Attribute}
-        onChange={setLocalAttribute}
+        className={isAttributeValid ? styles.Attribute : styles.Invalid}
+        onChange={validateAndSetLocalAttribute}
         onReset={resetAttribute}
         onSubmit={submitAttributeChange}
         placeholder={attributePlaceholder}
@@ -176,7 +217,7 @@ function Row({
       />
       :&nbsp;
       <Field
-        className={isValueValid ? styles.ValueValid : styles.ValueInvalid}
+        className={isValueValid ? styles.Value : styles.Invalid}
         onChange={validateAndSetLocalValue}
         onReset={resetValue}
         onSubmit={submitValueChange}
