@@ -15,7 +15,7 @@ import type { ResolveNativeStyle } from 'src/backend/NativeStyleEditor/setupNati
 type ConnectOptions = {
   host?: string,
   port?: number,
-  resolveNativeStyle?: ResolveNativeStyle,
+  resolveRNStyle?: ResolveNativeStyle,
   isAppActive?: () => boolean,
   websocket?: ?WebSocket,
 };
@@ -42,7 +42,7 @@ export function connectToDevTools(options: ?ConnectOptions) {
     host = 'localhost',
     port = 8097,
     websocket,
-    resolveNativeStyle = null,
+    resolveRNStyle = null,
     isAppActive = () => true,
   } = options || {};
 
@@ -145,6 +145,7 @@ export function connectToDevTools(options: ?ConnectOptions) {
       bridge.send('overrideComponentFilters', savedComponentFilters);
     }
 
+    // TODO (npm-packages) Warn if "isBackendStorageAPISupported"
     const agent = new Agent(bridge);
     agent.addListener('shutdown', () => {
       // If we received 'shutdown' from `agent`, we assume the `bridge` is already shutting down,
@@ -152,12 +153,12 @@ export function connectToDevTools(options: ?ConnectOptions) {
       hook.emit('shutdown');
     });
 
-    // Setup React Native style editor if the environment supports it.
-    if (resolveNativeStyle !== null) {
-      setupNativeStyleEditor(bridge, agent, resolveNativeStyle);
-    }
-
     initBackend(hook, agent, window);
+
+    // Setup React Native style editor if the environment supports it.
+    if (resolveRNStyle !== null) {
+      setupNativeStyleEditor(bridge, agent, resolveRNStyle);
+    }
   };
 
   function handleClose() {

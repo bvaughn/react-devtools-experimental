@@ -67,6 +67,7 @@ export default class Store extends EventEmitter<{|
   mutated: [[Array<number>, Map<number, number>]],
   recordChangeDescriptions: [],
   roots: [],
+  supportsNativeStyleEditor: [],
   supportsProfiling: [],
   supportsReloadAndProfile: [],
 |}> {
@@ -86,6 +87,9 @@ export default class Store extends EventEmitter<{|
   // Elements are mutated to avoid excessive cloning during tree updates.
   // The InspectedElementContext also relies on this mutability for its WeakMap usage.
   _idToElement: Map<number, Element> = new Map();
+
+  // Should the React Native style editor panel be shown?
+  _isNativeStyleEditorSupported: boolean = false;
 
   // Can the backend use the Storage API (e.g. localStorage)?
   // If not, features like reload-and-profile will not work correctly and must be disabled.
@@ -175,6 +179,10 @@ export default class Store extends EventEmitter<{|
     bridge.addListener(
       'isBackendStorageAPISupported',
       this.onBridgeStorageSupported
+    );
+    bridge.addListener(
+      'isNativeStyleEditorSupported',
+      this.onBridgeNativeStyleEditorSupported
     );
 
     this._profilerStore = new ProfilerStore(bridge, this, isProfiling);
@@ -331,6 +339,10 @@ export default class Store extends EventEmitter<{|
 
   get supportsNativeInspection(): boolean {
     return this._supportsNativeInspection;
+  }
+
+  get supportsNativeStyleEditor(): boolean {
+    return this._isNativeStyleEditorSupported;
   }
 
   get supportsProfiling(): boolean {
@@ -676,6 +688,18 @@ export default class Store extends EventEmitter<{|
     if (!isInsideCollapsedSubTree) {
       this._weightAcrossRoots += weightDelta;
     }
+  };
+
+  onBridgeNativeStyleEditorSupported = (
+    isNativeStyleEditorSupported: boolean
+  ) => {
+    console.log(
+      '[bridge] onBridgeNativeStyleEditorSupported()',
+      isNativeStyleEditorSupported
+    );
+    this._isNativeStyleEditorSupported = isNativeStyleEditorSupported;
+
+    this.emit('supportsNativeStyleEditor');
   };
 
   onBridgeOperations = (operations: Array<number>) => {

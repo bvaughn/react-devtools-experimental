@@ -9,6 +9,7 @@ import type {
   ProfilingDataBackend,
   RendererID,
 } from 'src/backend/types';
+import type { StyleAndLayout as StyleAndLayoutPayload } from 'src/backend/NativeStyleEditor/types';
 
 const BATCH_DURATION = 100;
 
@@ -61,11 +62,6 @@ type NativeStyleEditor_SetValueParams = {|
   value: string,
 |};
 
-type NativeStyleEditor_StyleParams = {|
-  ...ElementAndRendererID,
-  value: mixed,
-|};
-
 export default class Bridge extends EventEmitter<{|
   captureScreenshot: [{| commitIndex: number, rootID: number |}],
   clearNativeElementHighlight: [],
@@ -106,11 +102,11 @@ export default class Bridge extends EventEmitter<{|
   viewElementSource: [ElementAndRendererID],
 
   // React Native style editor plug-in.
-  NativeStyleEditor_GetStyle: [ElementAndRendererID],
-  NativeStyleEditor_Measure: [ElementAndRendererID],
-  NativeStyleEditor_RenameAttribute: [NativeStyleEditor_RenameAttributeParams],
-  NativeStyleEditor_SetValue: [NativeStyleEditor_SetValueParams],
-  NativeStyleEditor_Style: [NativeStyleEditor_StyleParams],
+  isNativeStyleEditorSupported: [true],
+  NativeStyleEditor_measure: [ElementAndRendererID],
+  NativeStyleEditor_renameAttribute: [NativeStyleEditor_RenameAttributeParams],
+  NativeStyleEditor_setValue: [NativeStyleEditor_SetValueParams],
+  NativeStyleEditor_styleAndLayout: [StyleAndLayoutPayload],
 |}> {
   _isShutdown: boolean = false;
   _messageQueue: Array<any> = [];

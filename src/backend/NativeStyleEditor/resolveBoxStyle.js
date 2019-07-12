@@ -1,8 +1,9 @@
 // @flow
 
+import type { BoxStyle } from './types';
+
 /**
- * This is mirror from
- * https://github.com/facebook/react-native/blob/master/Libraries/Inspector/resolveBoxStyle.js
+ * This mirrors react-native/Libraries/Inspector/resolveBoxStyle.js (but without RTL support).
  *
  * Resolve a style property into it's component parts, e.g.
  *
@@ -12,37 +13,73 @@
 export default function resolveBoxStyle(
   prefix: string,
   style: Object
-): ?Object {
-  const res = {};
-  const subs = ['top', 'left', 'bottom', 'right'];
-  let set = false;
-  subs.forEach(sub => {
-    res[sub] = style[prefix] || 0;
-  });
-  if (style[prefix]) {
-    set = true;
-  }
-  if (style[prefix + 'Vertical']) {
-    res.top = res.bottom = style[prefix + 'Vertical'];
-    set = true;
-  }
-  if (style[prefix + 'Horizontal']) {
-    res.left = res.right = style[prefix + 'Horizontal'];
-    set = true;
-  }
-  subs.forEach(sub => {
-    const val = style[prefix + capFirst(sub)];
-    if (val) {
-      res[sub] = val;
-      set = true;
-    }
-  });
-  if (!set) {
-    return null;
-  }
-  return res;
-}
+): BoxStyle | null {
+  let hasParts = false;
+  const result = {
+    bottom: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+  };
 
-function capFirst(text: string): string {
-  return text[0].toUpperCase() + text.slice(1);
+  const styleForAll = style[prefix];
+  if (styleForAll != null) {
+    for (const key of Object.keys(result)) {
+      result[key] = styleForAll;
+    }
+    hasParts = true;
+  }
+
+  const styleForHorizontal = style[prefix + 'Horizontal'];
+  if (styleForHorizontal != null) {
+    result.left = styleForHorizontal;
+    result.right = styleForHorizontal;
+    hasParts = true;
+  } else {
+    const styleForLeft = style[prefix + 'Left'];
+    if (styleForLeft != null) {
+      result.left = styleForLeft;
+      hasParts = true;
+    }
+
+    const styleForRight = style[prefix + 'Right'];
+    if (styleForRight != null) {
+      result.right = styleForRight;
+      hasParts = true;
+    }
+
+    const styleForEnd = style[prefix + 'End'];
+    if (styleForEnd != null) {
+      // TODO RTL support
+      result.right = styleForEnd;
+      hasParts = true;
+    }
+    const styleForStart = style[prefix + 'Start'];
+    if (styleForStart != null) {
+      // TODO RTL support
+      result.left = styleForStart;
+      hasParts = true;
+    }
+  }
+
+  const styleForVertical = style[prefix + 'Vertical'];
+  if (styleForVertical != null) {
+    result.bottom = styleForVertical;
+    result.top = styleForVertical;
+    hasParts = true;
+  } else {
+    const styleForBottom = style[prefix + 'Bottom'];
+    if (styleForBottom != null) {
+      result.bottom = styleForBottom;
+      hasParts = true;
+    }
+
+    const styleForTop = style[prefix + 'Top'];
+    if (styleForTop != null) {
+      result.top = styleForTop;
+      hasParts = true;
+    }
+  }
+
+  return hasParts ? result : null;
 }

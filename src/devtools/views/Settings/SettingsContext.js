@@ -213,6 +213,7 @@ function updateThemeVariables(
   updateStyleHelper(theme, 'color-background', documentElements);
   updateStyleHelper(theme, 'color-background-hover', documentElements);
   updateStyleHelper(theme, 'color-background-inactive', documentElements);
+  updateStyleHelper(theme, 'color-background-invalid', documentElements);
   updateStyleHelper(theme, 'color-background-selected', documentElements);
   updateStyleHelper(theme, 'color-border', documentElements);
   updateStyleHelper(theme, 'color-button-background', documentElements);
@@ -295,6 +296,7 @@ function updateThemeVariables(
   );
   updateStyleHelper(theme, 'color-tab-selected-border', documentElements);
   updateStyleHelper(theme, 'color-text', documentElements);
+  updateStyleHelper(theme, 'color-text-invalid', documentElements);
   updateStyleHelper(theme, 'color-text-selected', documentElements);
   updateStyleHelper(theme, 'color-toggle-background-invalid', documentElements);
   updateStyleHelper(theme, 'color-toggle-background-on', documentElements);

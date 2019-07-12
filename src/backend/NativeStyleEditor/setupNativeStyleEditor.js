@@ -5,6 +5,7 @@ import Bridge from 'src/bridge';
 import resolveBoxStyle from './resolveBoxStyle';
 
 import type { RendererID } from '../types';
+import type { StyleAndLayout } from './types';
 
 export type ResolveNativeStyle = (stylesheetID: number) => ?Object;
 
@@ -18,29 +19,14 @@ export default function setupNativeStyleEditor(
   resolveNativeStyle: ResolveNativeStyle
 ) {
   bridge.addListener(
-    'NativeStyleEditor_GetStyle',
-    ({ id, rendererID }: {| id: number, rendererID: RendererID |}) => {
-      const data = agent.getInstanceAndStyle({ id, rendererID });
-      if (!data || data.style) {
-        return null;
-      }
-      bridge.emit('NativeStyleEditor_Style', {
-        id,
-        rendererID,
-        value: resolveNativeStyle(data.style),
-      });
-    }
-  );
-
-  bridge.addListener(
-    'NativeStyleEditor_Measure',
+    'NativeStyleEditor_measure',
     ({ id, rendererID }: {| id: number, rendererID: RendererID |}) => {
       measureStyle(agent, bridge, resolveNativeStyle, id, rendererID);
     }
   );
 
   bridge.addListener(
-    'NativeStyleEditor_RenameAttribute',
+    'NativeStyleEditor_renameAttribute',
     ({
       id,
       rendererID,
@@ -62,7 +48,7 @@ export default function setupNativeStyleEditor(
   );
 
   bridge.addListener(
-    'NativeStyleEditor_SetValue',
+    'NativeStyleEditor_setValue',
     ({
       id,
       rendererID,
@@ -80,6 +66,8 @@ export default function setupNativeStyleEditor(
       );
     }
   );
+
+  bridge.send('isNativeStyleEditorSupported', true);
 }
 
 const EMPTY_BOX_STYLE = {
@@ -100,7 +88,14 @@ function measureStyle(
 ) {
   const data = agent.getInstanceAndStyle({ id, rendererID });
   if (!data || !data.style) {
-    bridge.send('rn-style:measure', {});
+    bridge.send(
+      'NativeStyleEditor_styleAndLayout',
+      ({
+        id,
+        layout: null,
+        style: null,
+      }: StyleAndLayout)
+    );
     return;
   }
 
@@ -115,7 +110,14 @@ function measureStyle(
   }
 
   if (!instance || typeof instance.measure !== 'function') {
-    bridge.send('rn-style:measure', { style: resolvedStyle });
+    bridge.send(
+      'NativeStyleEditor_styleAndLayout',
+      ({
+        id,
+        layout: null,
+        style: resolvedStyle || null,
+      }: StyleAndLayout)
+    );
     return;
   }
 
@@ -124,25 +126,36 @@ function measureStyle(
     // RN Android sometimes returns undefined here. Don't send measurements in this case.
     // https://github.com/jhen0409/react-native-debugger/issues/84#issuecomment-304611817
     if (typeof x !== 'number') {
-      bridge.send('rn-style:measure', { style: resolvedStyle });
+      bridge.send(
+        'NativeStyleEditor_styleAndLayout',
+        ({
+          id,
+          layout: null,
+          style: resolvedStyle || null,
+        }: StyleAndLayout)
+      );
       return;
     }
     const margin = resolveBoxStyle('margin', resolvedStyle) || EMPTY_BOX_STYLE;
     const padding =
       resolveBoxStyle('padding', resolvedStyle) || EMPTY_BOX_STYLE;
-    bridge.send('rn-style:measure', {
-      style: resolvedStyle,
-      measuredLayout: {
-        x,
-        y,
-        width,
-        height,
-        left,
-        top,
-        margin,
-        padding,
-      },
-    });
+    bridge.send(
+      'NativeStyleEditor_styleAndLayout',
+      ({
+        id,
+        layout: {
+          x,
+          y,
+          width,
+          height,
+          left,
+          top,
+          margin,
+          padding,
+        },
+        style: resolvedStyle || null,
+      }: StyleAndLayout)
+    );
   });
 }
 
