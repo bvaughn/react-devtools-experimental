@@ -6,12 +6,14 @@ import styles from './AutoSizeInput.css';
 type Props = {
   className?: string,
   onFocus?: (event: FocusEvent) => void,
+  placeholder?: string,
   value: any,
 };
 
 export default function AutoSizeInput({
   className,
   onFocus,
+  placeholder,
   value,
   ...rest
 }: Props) {
@@ -71,17 +73,20 @@ export default function AutoSizeInput({
     }
   }, [value]);
 
+  const isEmpty = value === '' || value === '""';
+
   return (
     <Fragment>
       <input
         ref={inputRef}
         className={`${className ? className : ''} ${styles.Input}`}
         onFocus={onFocusWrapper}
-        value={value}
+        placeholder={placeholder}
+        value={isEmpty ? '' : value}
         {...rest}
       />
       <div ref={hiddenDivRef} className={styles.HiddenDiv}>
-        {'' + value}
+        {isEmpty ? placeholder : value}
       </div>
     </Fragment>
   );

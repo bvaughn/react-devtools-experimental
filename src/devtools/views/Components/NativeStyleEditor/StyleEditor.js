@@ -1,6 +1,6 @@
 // @flow
 
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useMemo, useRef, useState } from 'react';
 import { unstable_batchedUpdates as batchedUpdates } from 'react-dom';
 import { BridgeContext, StoreContext } from 'src/devtools/views/context';
 import AutoSizeInput from './AutoSizeInput';
@@ -20,15 +20,7 @@ export default function StyleEditor({ id, style }: Props) {
   const bridge = useContext(BridgeContext);
   const store = useContext(StoreContext);
 
-  // TODO (RN style editor) Clone style Object into state for local edits.
-  // This would enable us to insert new style rules in stable positions without updates overriding.
-
-  const appendStyleAttributeToEnd = event => {
-    // TODO (RN style editor) Append a new, empty style to the end of the cloned keys array
-  };
-
   const changeAttribute = (oldName: string, newName: string, value: any) => {
-    console.log('changeAttribute()', oldName, newName, value);
     bridge.send('NativeStyleEditor_renameAttribute', {
       id,
       rendererID: store.getRendererIDForElement(id),
@@ -39,7 +31,6 @@ export default function StyleEditor({ id, style }: Props) {
   };
 
   const changeValue = (name: string, value: any) => {
-    console.log('changeValue()', name, value);
     bridge.send('NativeStyleEditor_setValue', {
       id,
       rendererID: store.getRendererIDForElement(id),
@@ -52,43 +43,86 @@ export default function StyleEditor({ id, style }: Props) {
 
   return (
     <div className={styles.StyleEditor}>
-      <div onClick={appendStyleAttributeToEnd}>
-        <div className={styles.Brackets}>{'style {'}</div>
-        {keys.length > 0 &&
-          keys.map(attribute => (
-            <Row
-              key={attribute}
-              attribute={attribute}
-              changeAttribute={changeAttribute}
-              changeValue={changeValue}
-              value={style[attribute]}
-            />
-          ))}
-        {keys.length === 0 && <div className={styles.Empty}>Empty</div>}
-        <div className={styles.Brackets}>{'}'}</div>
-      </div>
+      <div className={styles.Brackets}>{'style {'}</div>
+      {keys.length > 0 &&
+        keys.map(attribute => (
+          <Row
+            key={attribute}
+            attribute={attribute}
+            changeAttribute={changeAttribute}
+            changeValue={changeValue}
+            value={style[attribute]}
+          />
+        ))}
+      <NewRow changeAttribute={changeAttribute} changeValue={changeValue} />
+      <div className={styles.Brackets}>{'}'}</div>
     </div>
+  );
+}
+
+type NewRowProps = {|
+  changeAttribute: ChangeAttributeFn,
+  changeValue: ChangeValueFn,
+|};
+
+function NewRow({ changeAttribute, changeValue }: NewRowProps) {
+  const [key, setKey] = useState<number>(0);
+  const reset = () => setKey(key + 1);
+
+  const newAttributeRef = useRef<string>('');
+
+  const changeAttributeWrapper = (
+    oldAttribute: string,
+    newAttribute: string,
+    value: any
+  ) => {
+    // Ignore attribute changes until a value has been specified
+    newAttributeRef.current = newAttribute;
+  };
+
+  const changeValueWrapper = (attribute: string, value: any) => {
+    // Blur events should reset/cancel if there's no value or no attribute
+    if (value !== '') {
+      changeValue(newAttributeRef.current, value);
+    }
+    reset();
+  };
+
+  return (
+    <Row
+      key={key}
+      attribute={''}
+      attributePlaceholder="attribute"
+      changeAttribute={changeAttributeWrapper}
+      changeValue={changeValueWrapper}
+      value={''}
+      valuePlaceholder="value"
+    />
   );
 }
 
 type RowProps = {|
   attribute: string,
+  attributePlaceholder?: string,
   changeAttribute: ChangeAttributeFn,
   changeValue: ChangeValueFn,
   value: any,
+  valuePlaceholder?: string,
 |};
 
-function Row({ attribute, changeAttribute, changeValue, value }: RowProps) {
-  const appendStyleAttributeAfterRow = event => {
-    // TODO (RN style editor) Append a new, empty style after the current row,
-    // and prevent event from bubbling.
-  };
-
+function Row({
+  attribute,
+  attributePlaceholder,
+  changeAttribute,
+  changeValue,
+  value,
+  valuePlaceholder,
+}: RowProps) {
   // TODO (RN style editor) Use @reach/combobox to auto-complete attributes.
   // The list of valid attributes would need to be injected by RN backend,
   // which would need to require them from ReactNativeViewViewConfig "validAttributes.style" keys.
-  // This would need to degrade gracefully for RNW,
-  // and maybe even let them inject a custom set of whitelisted attributes.
+  // This would need to degrade gracefully for react-native-web,
+  // althoguh we could let it also inject a custom set of whitelisted attributes.
 
   const [localAttribute, setLocalAttribute] = useState(attribute);
   const [localValue, setLocalValue] = useState(JSON.stringify(value));
@@ -107,6 +141,14 @@ function Row({ attribute, changeAttribute, changeValue, value }: RowProps) {
     });
   };
 
+  const resetAttribute = () => {
+    setLocalAttribute(attribute);
+  };
+
+  const resetValue = () => {
+    setLocalValue(value);
+  };
+
   const submitValueChange = () => {
     if (isValueValid) {
       const parsedLocalValue = JSON.parse(localValue);
@@ -123,18 +165,22 @@ function Row({ attribute, changeAttribute, changeValue, value }: RowProps) {
   };
 
   return (
-    <div className={styles.Row} onClick={appendStyleAttributeAfterRow}>
+    <div className={styles.Row}>
       <Field
         className={styles.Attribute}
         onChange={setLocalAttribute}
+        onReset={resetAttribute}
         onSubmit={submitAttributeChange}
+        placeholder={attributePlaceholder}
         value={localAttribute}
       />
       :&nbsp;
       <Field
         className={isValueValid ? styles.ValueValid : styles.ValueInvalid}
         onChange={validateAndSetLocalValue}
+        onReset={resetValue}
         onSubmit={submitValueChange}
+        placeholder={valuePlaceholder}
         value={localValue}
       />
       ;
@@ -145,14 +191,36 @@ function Row({ attribute, changeAttribute, changeValue, value }: RowProps) {
 type FieldProps = {|
   className: string,
   onChange: (value: any) => void,
+  onReset: () => void,
   onSubmit: () => void,
+  placeholder?: string,
   value: any,
 |};
 
-function Field({ className, onChange, onSubmit, value }: FieldProps) {
+function Field({
+  className,
+  onChange,
+  onReset,
+  onSubmit,
+  placeholder,
+  value,
+}: FieldProps) {
   const onKeyDown = event => {
-    if (event.key === 'Enter') {
-      onSubmit();
+    switch (event.key) {
+      case 'Enter':
+        onSubmit();
+        break;
+      case 'Escape':
+        onReset();
+        break;
+      case 'ArrowDown':
+      case 'ArrowLeft':
+      case 'ArrowRight':
+      case 'ArrowUp':
+        event.stopPropagation();
+        break;
+      default:
+        break;
     }
   };
 
@@ -162,6 +230,7 @@ function Field({ className, onChange, onSubmit, value }: FieldProps) {
       onBlur={onSubmit}
       onChange={event => onChange(event.target.value)}
       onKeyDown={onKeyDown}
+      placeholder={placeholder}
       value={value}
     />
   );

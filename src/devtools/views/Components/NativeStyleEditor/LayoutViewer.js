@@ -45,9 +45,9 @@ export default function LayoutViewer({ id, layout }: Props) {
               <label>{padding.right || '-'}</label>
             </div>
 
-            <label>{margin.right || '-'}</label>
+            <label>{padding.bottom || '-'}</label>
           </div>
-          <label>{padding.bottom || '-'}</label>
+          <label>{margin.right || '-'}</label>
         </div>
         <label>{margin.bottom || '-'}</label>
       </div>
