@@ -39,6 +39,11 @@ import {
   TREE_OPERATION_UPDATE_TREE_BASE_DURATION,
 } from '../constants';
 import { inspectHooksOfFiber } from './ReactDebugHooks';
+import {
+  disable as disableConsole,
+  enable as enableConsole,
+  patch as patchConsole,
+} from './console';
 
 import type {
   ChangeDescription,
@@ -266,6 +271,11 @@ export function attach(
     SUSPENSE_SYMBOL_STRING,
     DEPRECATED_PLACEHOLDER_SYMBOL_STRING,
   } = ReactSymbols;
+
+  // Patching the console enables DevTools to do a few useful things:
+  // * Append component stacks to warnings and error messages
+  // * Disable logging during re-renders to inspect hooks (see inspectHooksOfFiber)
+  patchConsole(renderer);
 
   const {
     overrideHookState,
@@ -2109,6 +2119,20 @@ export function attach(
       node = node.return;
     }
 
+    let hooks = null;
+    if (usesHooks) {
+      // Suppress console logging while re-rendering
+      try {
+        disableConsole();
+        hooks = inspectHooksOfFiber(
+          fiber,
+          (renderer.currentDispatcherRef: any)
+        );
+      } finally {
+        enableConsole();
+      }
+    }
+
     return {
       id,
 
@@ -2136,9 +2160,7 @@ export function attach(
       // TODO Review sanitization approach for the below inspectable values.
       context,
       events,
-      hooks: usesHooks
-        ? inspectHooksOfFiber(fiber, (renderer.currentDispatcherRef: any))
-        : null,
+      hooks,
       props: memoizedProps,
       state: usesHooks ? null : memoizedState,
 
