@@ -77,7 +77,10 @@ function describeComponentFrame(
           const pathBeforeSlash = match[1];
           if (pathBeforeSlash) {
             const folderName = pathBeforeSlash.replace(BEFORE_SLASH_RE, '');
-            fileName = folderName + '/' + fileName;
+            // Note the below string contains a zero width space after the "/" character.
+            // This is to prevent browsers like Chrome from formatting the file name as a link.
+            // (Since this is a source link, it would not work to open the source file anyway.)
+            fileName = folderName + '/​' + fileName;
           }
         }
       }
