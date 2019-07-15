@@ -143,7 +143,7 @@
     "react-color": "^2.11.7",
     "react-dom": "^0.0.0-424099da6",
     "react-dom-15": "npm:react-dom@^15",
-    "react-is": "^0.0.0-9f395904c",
+    "react-is": "0.0.0-424099da6",
     "react-test-renderer": "^0.0.0-424099da6",
     "react-virtualized-auto-sizer": "^1.0.2",
     "react-window": "./vendor/react-window",
