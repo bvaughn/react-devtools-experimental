@@ -39,11 +39,7 @@ import {
   TREE_OPERATION_UPDATE_TREE_BASE_DURATION,
 } from '../constants';
 import { inspectHooksOfFiber } from './ReactDebugHooks';
-import {
-  disable as disableConsole,
-  enable as enableConsole,
-  patch as patchConsole,
-} from './console';
+import { disable as disableConsole, enable as enableConsole } from './console';
 
 import type {
   ChangeDescription,
@@ -271,11 +267,6 @@ export function attach(
     SUSPENSE_SYMBOL_STRING,
     DEPRECATED_PLACEHOLDER_SYMBOL_STRING,
   } = ReactSymbols;
-
-  // Patching the console enables DevTools to do a few useful things:
-  // * Append component stacks to warnings and error messages
-  // * Disable logging during re-renders to inspect hooks (see inspectHooksOfFiber)
-  patchConsole(renderer, getDisplayNameForFiber);
 
   const {
     overrideHookState,

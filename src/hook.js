@@ -7,6 +7,8 @@
  * @flow
  */
 
+import { patch as patchConsole } from './backend/console';
+
 import type { DevToolsHook } from 'src/backend/types';
 
 declare var window: any;
@@ -154,6 +156,18 @@ export function installHook(target: any): DevToolsHook | null {
     const reactBuildType = hasDetectedBadDCE
       ? 'deadcode'
       : detectReactBuildType(renderer);
+
+    // Patching the console enables DevTools to do a few useful things:
+    // * Append component stacks to warnings and error messages
+    // * Disable logging during re-renders to inspect hooks (see inspectHooksOfFiber)
+    //
+    // Patching the console now, rather than waiting for the frontend to "attach" itself,
+    // ensures React Native developers see components stacks even without running DevTools.
+    //
+    // Don't patch in test environments because we don't want to interfere with Jest's own console overrides.
+    if (process.env.NODE_ENV !== 'test') {
+      patchConsole(console, renderer);
+    }
 
     // If we have just reloaded to profile, we need to inject the renderer interface before the app loads.
     // Otherwise the renderer won't yet exist and we can skip this step.
