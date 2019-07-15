@@ -91,12 +91,6 @@ export type GetFiberIDForNative = (
 ) => number | null;
 export type FindNativeNodesForFiberID = (id: number) => ?Array<NativeType>;
 
-type ReactDebugCurrentFrame = {|
-  // Stack implementation injected by the current renderer.
-  getCurrentStack: () => string,
-  getStackAddendum: () => string,
-|};
-
 export type ReactRenderer = {
   findFiberByHostInstance: (hostInstance: NativeType) => ?Fiber,
   version: string,
@@ -125,8 +119,8 @@ export type ReactRenderer = {
   currentDispatcherRef?: {| current: null | Dispatcher |},
 
   // Only injected by React v16.9+ in DEV mode.
-  // Enables DevTools to append component stack to error messages.
-  debugCurrentFrame: ReactDebugCurrentFrame,
+  // Enables DevTools to append owners-only component stack to error messages.
+  getCurrentFiber?: () => Fiber | null,
 
   // <= 15
   Mount?: any,

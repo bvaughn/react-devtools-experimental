@@ -275,7 +275,7 @@ export function attach(
   // Patching the console enables DevTools to do a few useful things:
   // * Append component stacks to warnings and error messages
   // * Disable logging during re-renders to inspect hooks (see inspectHooksOfFiber)
-  patchConsole(renderer);
+  patchConsole(renderer, getDisplayNameForFiber);
 
   const {
     overrideHookState,
