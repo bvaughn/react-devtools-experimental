@@ -1,5 +1,8 @@
 // @flow
 
+import { getInternalReactConstants } from './renderer';
+import describeComponentFrame from './describeComponentFrame';
+
 import type { Fiber, ReactRenderer } from './types';
 
 let isDisabled: boolean = false;
@@ -17,18 +20,22 @@ const FRAME_REGEX = /\n {4}in /;
 
 export function patch(
   targetConsole: Object,
-  { describeComponentFrame, getComponentName, getCurrentFiber }: ReactRenderer
+  { getCurrentFiber, findFiberByHostInstance, version }: ReactRenderer
 ): void {
   if (hasPatched) {
     return;
   }
 
+  if (typeof findFiberByHostInstance !== 'function') {
+    return;
+  }
+
+  const { getDisplayNameForFiber } = getInternalReactConstants(version);
+
   hasPatched = true;
 
   for (let method in targetConsole) {
     const appendComponentStack =
-      typeof describeComponentFrame === 'function' &&
-      typeof getComponentName === 'function' &&
       typeof getCurrentFiber === 'function' &&
       (method === 'error' || method === 'warn' || method === 'trace');
 
@@ -47,10 +54,10 @@ export function patch(
           let current: ?Fiber = getCurrentFiber();
           let ownerStack: string = '';
           while (current != null) {
-            const name = getComponentName(current.type);
+            const name = getDisplayNameForFiber(current);
             const owner = current._debugOwner;
             const ownerName =
-              owner != null ? getComponentName(owner.type) : null;
+              owner != null ? getDisplayNameForFiber(owner) : null;
 
             ownerStack += describeComponentFrame(
               name,

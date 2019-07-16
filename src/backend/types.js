@@ -120,12 +120,6 @@ export type ReactRenderer = {
 
   // Only injected by React v16.9+ in DEV mode.
   // Enables DevTools to append owners-only component stack to error messages.
-  describeComponentFrame: (
-    name: null | string,
-    source: any,
-    ownerName: null | string
-  ) => string,
-  getComponentName: (type: mixed) => string | null,
   getCurrentFiber?: () => Fiber | null,
 
   // <= 15

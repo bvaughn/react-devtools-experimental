@@ -60,8 +60,89 @@ import type {
 import type { Interaction } from 'src/devtools/views/Profiler/types';
 import type { ComponentFilter, ElementType } from 'src/types';
 
-function getInternalReactConstants(version) {
-  const ReactSymbols = {
+type getDisplayNameForFiberType = (fiber: Fiber) => string | null;
+type getTypeSymbolType = (type: any) => Symbol | number;
+
+type ReactSymbolsType = {
+  CONCURRENT_MODE_NUMBER: number,
+  CONCURRENT_MODE_SYMBOL_STRING: string,
+  DEPRECATED_ASYNC_MODE_SYMBOL_STRING: string,
+  CONTEXT_CONSUMER_NUMBER: number,
+  CONTEXT_CONSUMER_SYMBOL_STRING: string,
+  CONTEXT_PROVIDER_NUMBER: number,
+  CONTEXT_PROVIDER_SYMBOL_STRING: string,
+  EVENT_COMPONENT_NUMBER: number,
+  EVENT_COMPONENT_STRING: string,
+  EVENT_TARGET_NUMBER: number,
+  EVENT_TARGET_STRING: string,
+  EVENT_TARGET_TOUCH_HIT_NUMBER: number,
+  EVENT_TARGET_TOUCH_HIT_STRING: string,
+  FORWARD_REF_NUMBER: number,
+  FORWARD_REF_SYMBOL_STRING: string,
+  MEMO_NUMBER: number,
+  MEMO_SYMBOL_STRING: string,
+  PROFILER_NUMBER: number,
+  PROFILER_SYMBOL_STRING: string,
+  STRICT_MODE_NUMBER: number,
+  STRICT_MODE_SYMBOL_STRING: string,
+  SUSPENSE_NUMBER: number,
+  SUSPENSE_SYMBOL_STRING: string,
+  DEPRECATED_PLACEHOLDER_SYMBOL_STRING: string,
+};
+
+type ReactPriorityLevelsType = {|
+  ImmediatePriority: number,
+  UserBlockingPriority: number,
+  NormalPriority: number,
+  LowPriority: number,
+  IdlePriority: number,
+  NoPriority: number,
+|};
+
+type ReactTypeOfWorkType = {|
+  ClassComponent: number,
+  ContextConsumer: number,
+  ContextProvider: number,
+  CoroutineComponent: number,
+  CoroutineHandlerPhase: number,
+  DehydratedSuspenseComponent: number,
+  EventComponent: number,
+  EventTarget: number,
+  ForwardRef: number,
+  Fragment: number,
+  FunctionComponent: number,
+  HostComponent: number,
+  HostPortal: number,
+  HostRoot: number,
+  HostText: number,
+  IncompleteClassComponent: number,
+  IndeterminateComponent: number,
+  LazyComponent: number,
+  MemoComponent: number,
+  Mode: number,
+  Profiler: number,
+  SimpleMemoComponent: number,
+  SuspenseComponent: number,
+  YieldComponent: number,
+|};
+
+type ReactTypeOfSideEffectType = {|
+  NoEffect: number,
+  PerformedWork: number,
+  Placement: number,
+|};
+
+export function getInternalReactConstants(
+  version: string
+): {|
+  getDisplayNameForFiber: getDisplayNameForFiberType,
+  getTypeSymbol: getTypeSymbolType,
+  ReactPriorityLevels: ReactPriorityLevelsType,
+  ReactSymbols: ReactSymbolsType,
+  ReactTypeOfSideEffect: ReactTypeOfSideEffectType,
+  ReactTypeOfWork: ReactTypeOfWorkType,
+|} {
+  const ReactSymbols: ReactSymbolsType = {
     CONCURRENT_MODE_NUMBER: 0xeacf,
     CONCURRENT_MODE_SYMBOL_STRING: 'Symbol(react.concurrent_mode)',
     DEPRECATED_ASYNC_MODE_SYMBOL_STRING: 'Symbol(react.async_mode)',
@@ -88,7 +169,7 @@ function getInternalReactConstants(version) {
     DEPRECATED_PLACEHOLDER_SYMBOL_STRING: 'Symbol(react.placeholder)',
   };
 
-  const ReactTypeOfSideEffect = {
+  const ReactTypeOfSideEffect: ReactTypeOfSideEffectType = {
     NoEffect: 0b00,
     PerformedWork: 0b01,
     Placement: 0b10,
@@ -101,7 +182,7 @@ function getInternalReactConstants(version) {
   // Technically these priority levels are invalid for versions before 16.9,
   // but 16.9 is the first version to report priority level to DevTools,
   // so we can avoid checking for earlier versions and support pre-16.9 canary releases in the process.
-  const ReactPriorityLevels = {
+  const ReactPriorityLevels: ReactPriorityLevelsType = {
     ImmediatePriority: 99,
     UserBlockingPriority: 98,
     NormalPriority: 97,
@@ -110,7 +191,7 @@ function getInternalReactConstants(version) {
     NoPriority: 90,
   };
 
-  let ReactTypeOfWork;
+  let ReactTypeOfWork: ReactTypeOfWorkType = ((null: any): ReactTypeOfWorkType);
 
   // **********************************************************
   // The section below is copied from files in React repo.
@@ -201,7 +282,113 @@ function getInternalReactConstants(version) {
   // End of copied code.
   // **********************************************************
 
+  function getTypeSymbol(type: any): Symbol | number {
+    const symbolOrNumber =
+      typeof type === 'object' && type !== null ? type.$$typeof : type;
+
+    return typeof symbolOrNumber === 'symbol'
+      ? symbolOrNumber.toString()
+      : symbolOrNumber;
+  }
+
+  // NOTICE Keep in sync with shouldFilterFiber() and other get*ForFiber methods
+  function getDisplayNameForFiber(fiber: Fiber): string | null {
+    const { elementType, type, tag } = fiber;
+
+    // This is to support lazy components with a Promise as the type.
+    // see https://github.com/facebook/react/pull/13397
+    let resolvedType = type;
+    if (typeof type === 'object' && type !== null) {
+      if (typeof type.then === 'function') {
+        resolvedType = type._reactResult;
+      }
+    }
+
+    let resolvedContext: any = null;
+
+    switch (tag) {
+      case ReactTypeOfWork.ClassComponent:
+      case ReactTypeOfWork.IncompleteClassComponent:
+        return getDisplayName(resolvedType);
+      case ReactTypeOfWork.FunctionComponent:
+      case ReactTypeOfWork.IndeterminateComponent:
+        return getDisplayName(resolvedType);
+      case ReactTypeOfWork.EventComponent:
+        return type.responder.displayName || 'EventComponent';
+      case ReactTypeOfWork.EventTarget:
+        switch (getTypeSymbol(elementType.type)) {
+          case ReactSymbols.EVENT_TARGET_TOUCH_HIT_NUMBER:
+          case ReactSymbols.EVENT_TARGET_TOUCH_HIT_STRING:
+            return 'TouchHitTarget';
+          default:
+            return elementType.displayName || 'EventTarget';
+        }
+      case ReactTypeOfWork.ForwardRef:
+        return (
+          resolvedType.displayName ||
+          getDisplayName(resolvedType.render, 'Anonymous')
+        );
+      case ReactTypeOfWork.HostRoot:
+        return null;
+      case ReactTypeOfWork.HostComponent:
+        return type;
+      case ReactTypeOfWork.HostPortal:
+      case ReactTypeOfWork.HostText:
+      case ReactTypeOfWork.Fragment:
+        return null;
+      case ReactTypeOfWork.MemoComponent:
+      case ReactTypeOfWork.SimpleMemoComponent:
+        if (elementType.displayName) {
+          return elementType.displayName;
+        } else {
+          return getDisplayName(type, 'Anonymous');
+        }
+      default:
+        const typeSymbol = getTypeSymbol(type);
+
+        switch (typeSymbol) {
+          case ReactSymbols.CONCURRENT_MODE_NUMBER:
+          case ReactSymbols.CONCURRENT_MODE_SYMBOL_STRING:
+          case ReactSymbols.DEPRECATED_ASYNC_MODE_SYMBOL_STRING:
+            return null;
+          case ReactSymbols.CONTEXT_PROVIDER_NUMBER:
+          case ReactSymbols.CONTEXT_PROVIDER_SYMBOL_STRING:
+            // 16.3.0 exposed the context object as "context"
+            // PR #12501 changed it to "_context" for 16.3.1+
+            // NOTE Keep in sync with inspectElementRaw()
+            resolvedContext = fiber.type._context || fiber.type.context;
+            return `${resolvedContext.displayName || 'Context'}.Provider`;
+          case ReactSymbols.CONTEXT_CONSUMER_NUMBER:
+          case ReactSymbols.CONTEXT_CONSUMER_SYMBOL_STRING:
+            // 16.3-16.5 read from "type" because the Consumer is the actual context object.
+            // 16.6+ should read from "type._context" because Consumer can be different (in DEV).
+            // NOTE Keep in sync with inspectElementRaw()
+            resolvedContext = fiber.type._context || fiber.type;
+
+            // NOTE: TraceUpdatesBackendManager depends on the name ending in '.Consumer'
+            // If you change the name, figure out a more resilient way to detect it.
+            return `${resolvedContext.displayName || 'Context'}.Consumer`;
+          case ReactSymbols.STRICT_MODE_NUMBER:
+          case ReactSymbols.STRICT_MODE_SYMBOL_STRING:
+            return null;
+          case ReactSymbols.SUSPENSE_NUMBER:
+          case ReactSymbols.SUSPENSE_SYMBOL_STRING:
+          case ReactSymbols.DEPRECATED_PLACEHOLDER_SYMBOL_STRING:
+            return 'Suspense';
+          case ReactSymbols.PROFILER_NUMBER:
+          case ReactSymbols.PROFILER_SYMBOL_STRING:
+            return `Profiler(${fiber.memoizedProps.id})`;
+          default:
+            // Unknown element type.
+            // This may mean a new element type that has not yet been added to DevTools.
+            return null;
+        }
+    }
+  }
+
   return {
+    getDisplayNameForFiber,
+    getTypeSymbol,
     ReactPriorityLevels,
     ReactTypeOfWork,
     ReactSymbols,
@@ -216,6 +403,8 @@ export function attach(
   global: Object
 ): RendererInterface {
   const {
+    getDisplayNameForFiber,
+    getTypeSymbol,
     ReactPriorityLevels,
     ReactTypeOfWork,
     ReactSymbols,
@@ -257,8 +446,6 @@ export function attach(
     CONTEXT_CONSUMER_SYMBOL_STRING,
     CONTEXT_PROVIDER_NUMBER,
     CONTEXT_PROVIDER_SYMBOL_STRING,
-    EVENT_TARGET_TOUCH_HIT_NUMBER,
-    EVENT_TARGET_TOUCH_HIT_STRING,
     PROFILER_NUMBER,
     PROFILER_SYMBOL_STRING,
     STRICT_MODE_NUMBER,
@@ -451,111 +638,6 @@ export function attach(
 
     return false;
   }
-
-  function getTypeSymbol(type: any): Symbol | number {
-    const symbolOrNumber =
-      typeof type === 'object' && type !== null ? type.$$typeof : type;
-
-    return typeof symbolOrNumber === 'symbol'
-      ? symbolOrNumber.toString()
-      : symbolOrNumber;
-  }
-
-  // NOTICE Keep in sync with shouldFilterFiber() and other get*ForFiber methods
-  function getDisplayNameForFiber(fiber: Fiber): string | null {
-    const { elementType, type, tag } = fiber;
-
-    // This is to support lazy components with a Promise as the type.
-    // see https://github.com/facebook/react/pull/13397
-    let resolvedType = type;
-    if (typeof type === 'object' && type !== null) {
-      if (typeof type.then === 'function') {
-        resolvedType = type._reactResult;
-      }
-    }
-
-    let resolvedContext: any = null;
-
-    switch (tag) {
-      case ClassComponent:
-      case IncompleteClassComponent:
-        return getDisplayName(resolvedType);
-      case FunctionComponent:
-      case IndeterminateComponent:
-        return getDisplayName(resolvedType);
-      case EventComponent:
-        return type.responder.displayName || 'EventComponent';
-      case EventTarget:
-        switch (getTypeSymbol(elementType.type)) {
-          case EVENT_TARGET_TOUCH_HIT_NUMBER:
-          case EVENT_TARGET_TOUCH_HIT_STRING:
-            return 'TouchHitTarget';
-          default:
-            return elementType.displayName || 'EventTarget';
-        }
-      case ForwardRef:
-        return (
-          resolvedType.displayName ||
-          getDisplayName(resolvedType.render, 'Anonymous')
-        );
-      case HostRoot:
-        return null;
-      case HostComponent:
-        return type;
-      case HostPortal:
-      case HostText:
-      case Fragment:
-        return null;
-      case MemoComponent:
-      case SimpleMemoComponent:
-        if (elementType.displayName) {
-          return elementType.displayName;
-        } else {
-          return getDisplayName(type, 'Anonymous');
-        }
-      default:
-        const typeSymbol = getTypeSymbol(type);
-
-        switch (typeSymbol) {
-          case CONCURRENT_MODE_NUMBER:
-          case CONCURRENT_MODE_SYMBOL_STRING:
-          case DEPRECATED_ASYNC_MODE_SYMBOL_STRING:
-            return null;
-          case CONTEXT_PROVIDER_NUMBER:
-          case CONTEXT_PROVIDER_SYMBOL_STRING:
-            // 16.3.0 exposed the context object as "context"
-            // PR #12501 changed it to "_context" for 16.3.1+
-            // NOTE Keep in sync with inspectElementRaw()
-            resolvedContext = fiber.type._context || fiber.type.context;
-            return `${resolvedContext.displayName || 'Context'}.Provider`;
-          case CONTEXT_CONSUMER_NUMBER:
-          case CONTEXT_CONSUMER_SYMBOL_STRING:
-            // 16.3-16.5 read from "type" because the Consumer is the actual context object.
-            // 16.6+ should read from "type._context" because Consumer can be different (in DEV).
-            // NOTE Keep in sync with inspectElementRaw()
-            resolvedContext = fiber.type._context || fiber.type;
-
-            // NOTE: TraceUpdatesBackendManager depends on the name ending in '.Consumer'
-            // If you change the name, figure out a more resilient way to detect it.
-            return `${resolvedContext.displayName || 'Context'}.Consumer`;
-          case STRICT_MODE_NUMBER:
-          case STRICT_MODE_SYMBOL_STRING:
-            return null;
-          case SUSPENSE_NUMBER:
-          case SUSPENSE_SYMBOL_STRING:
-          case DEPRECATED_PLACEHOLDER_SYMBOL_STRING:
-            return 'Suspense';
-          case PROFILER_NUMBER:
-          case PROFILER_SYMBOL_STRING:
-            return `Profiler(${fiber.memoizedProps.id})`;
-          default:
-            // Unknown element type.
-            // This may mean a new element type that has not yet been added to DevTools.
-            return null;
-        }
-    }
-  }
-
   // NOTICE Keep in sync with shouldFilterFiber() and other get*ForFiber methods
   function getElementTypeForFiber(fiber: Fiber): ElementType {
     const { type, tag } = fiber;
