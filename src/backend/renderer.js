@@ -291,6 +291,42 @@ export function getInternalReactConstants(
       : symbolOrNumber;
   }
 
+  const {
+    ClassComponent,
+    IncompleteClassComponent,
+    FunctionComponent,
+    IndeterminateComponent,
+    EventComponent,
+    EventTarget,
+    ForwardRef,
+    HostRoot,
+    HostComponent,
+    HostPortal,
+    HostText,
+    Fragment,
+    MemoComponent,
+    SimpleMemoComponent,
+  } = ReactTypeOfWork;
+
+  const {
+    EVENT_TARGET_TOUCH_HIT_NUMBER,
+    EVENT_TARGET_TOUCH_HIT_STRING,
+    CONCURRENT_MODE_NUMBER,
+    CONCURRENT_MODE_SYMBOL_STRING,
+    DEPRECATED_ASYNC_MODE_SYMBOL_STRING,
+    CONTEXT_PROVIDER_NUMBER,
+    CONTEXT_PROVIDER_SYMBOL_STRING,
+    CONTEXT_CONSUMER_NUMBER,
+    CONTEXT_CONSUMER_SYMBOL_STRING,
+    STRICT_MODE_NUMBER,
+    STRICT_MODE_SYMBOL_STRING,
+    SUSPENSE_NUMBER,
+    SUSPENSE_SYMBOL_STRING,
+    DEPRECATED_PLACEHOLDER_SYMBOL_STRING,
+    PROFILER_NUMBER,
+    PROFILER_SYMBOL_STRING,
+  } = ReactSymbols;
+
   // NOTICE Keep in sync with shouldFilterFiber() and other get*ForFiber methods
   function getDisplayNameForFiber(fiber: Fiber): string | null {
     const { elementType, type, tag } = fiber;
@@ -307,37 +343,37 @@ export function getInternalReactConstants(
     let resolvedContext: any = null;
 
     switch (tag) {
-      case ReactTypeOfWork.ClassComponent:
-      case ReactTypeOfWork.IncompleteClassComponent:
+      case ClassComponent:
+      case IncompleteClassComponent:
         return getDisplayName(resolvedType);
-      case ReactTypeOfWork.FunctionComponent:
-      case ReactTypeOfWork.IndeterminateComponent:
+      case FunctionComponent:
+      case IndeterminateComponent:
         return getDisplayName(resolvedType);
-      case ReactTypeOfWork.EventComponent:
+      case EventComponent:
         return type.responder.displayName || 'EventComponent';
-      case ReactTypeOfWork.EventTarget:
+      case EventTarget:
         switch (getTypeSymbol(elementType.type)) {
-          case ReactSymbols.EVENT_TARGET_TOUCH_HIT_NUMBER:
-          case ReactSymbols.EVENT_TARGET_TOUCH_HIT_STRING:
+          case EVENT_TARGET_TOUCH_HIT_NUMBER:
+          case EVENT_TARGET_TOUCH_HIT_STRING:
             return 'TouchHitTarget';
           default:
             return elementType.displayName || 'EventTarget';
         }
-      case ReactTypeOfWork.ForwardRef:
+      case ForwardRef:
         return (
           resolvedType.displayName ||
           getDisplayName(resolvedType.render, 'Anonymous')
         );
-      case ReactTypeOfWork.HostRoot:
+      case HostRoot:
         return null;
-      case ReactTypeOfWork.HostComponent:
+      case HostComponent:
         return type;
-      case ReactTypeOfWork.HostPortal:
-      case ReactTypeOfWork.HostText:
-      case ReactTypeOfWork.Fragment:
+      case HostPortal:
+      case HostText:
+      case Fragment:
         return null;
-      case ReactTypeOfWork.MemoComponent:
-      case ReactTypeOfWork.SimpleMemoComponent:
+      case MemoComponent:
+      case SimpleMemoComponent:
         if (elementType.displayName) {
           return elementType.displayName;
         } else {
@@ -347,19 +383,19 @@ export function getInternalReactConstants(
         const typeSymbol = getTypeSymbol(type);
 
         switch (typeSymbol) {
-          case ReactSymbols.CONCURRENT_MODE_NUMBER:
-          case ReactSymbols.CONCURRENT_MODE_SYMBOL_STRING:
-          case ReactSymbols.DEPRECATED_ASYNC_MODE_SYMBOL_STRING:
+          case CONCURRENT_MODE_NUMBER:
+          case CONCURRENT_MODE_SYMBOL_STRING:
+          case DEPRECATED_ASYNC_MODE_SYMBOL_STRING:
             return null;
-          case ReactSymbols.CONTEXT_PROVIDER_NUMBER:
-          case ReactSymbols.CONTEXT_PROVIDER_SYMBOL_STRING:
+          case CONTEXT_PROVIDER_NUMBER:
+          case CONTEXT_PROVIDER_SYMBOL_STRING:
             // 16.3.0 exposed the context object as "context"
             // PR #12501 changed it to "_context" for 16.3.1+
             // NOTE Keep in sync with inspectElementRaw()
             resolvedContext = fiber.type._context || fiber.type.context;
             return `${resolvedContext.displayName || 'Context'}.Provider`;
-          case ReactSymbols.CONTEXT_CONSUMER_NUMBER:
-          case ReactSymbols.CONTEXT_CONSUMER_SYMBOL_STRING:
+          case CONTEXT_CONSUMER_NUMBER:
+          case CONTEXT_CONSUMER_SYMBOL_STRING:
             // 16.3-16.5 read from "type" because the Consumer is the actual context object.
             // 16.6+ should read from "type._context" because Consumer can be different (in DEV).
             // NOTE Keep in sync with inspectElementRaw()
@@ -368,15 +404,15 @@ export function getInternalReactConstants(
             // NOTE: TraceUpdatesBackendManager depends on the name ending in '.Consumer'
             // If you change the name, figure out a more resilient way to detect it.
             return `${resolvedContext.displayName || 'Context'}.Consumer`;
-          case ReactSymbols.STRICT_MODE_NUMBER:
-          case ReactSymbols.STRICT_MODE_SYMBOL_STRING:
+          case STRICT_MODE_NUMBER:
+          case STRICT_MODE_SYMBOL_STRING:
             return null;
-          case ReactSymbols.SUSPENSE_NUMBER:
-          case ReactSymbols.SUSPENSE_SYMBOL_STRING:
-          case ReactSymbols.DEPRECATED_PLACEHOLDER_SYMBOL_STRING:
+          case SUSPENSE_NUMBER:
+          case SUSPENSE_SYMBOL_STRING:
+          case DEPRECATED_PLACEHOLDER_SYMBOL_STRING:
             return 'Suspense';
-          case ReactSymbols.PROFILER_NUMBER:
-          case ReactSymbols.PROFILER_SYMBOL_STRING:
+          case PROFILER_NUMBER:
+          case PROFILER_SYMBOL_STRING:
             return `Profiler(${fiber.memoizedProps.id})`;
           default:
             // Unknown element type.
