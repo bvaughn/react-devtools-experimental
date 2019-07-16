@@ -346,7 +346,10 @@ export function attach(
   if (window.__REACT_DEVTOOLS_COMPONENT_FILTERS__ != null) {
     applyComponentFilters(window.__REACT_DEVTOOLS_COMPONENT_FILTERS__);
   } else {
-    console.warn('⚛️ DevTools: Could not locate saved component filters');
+    // Unfortunately this feature is not expected to work for React Native for now.
+    // It would be annoying for us to spam YellowBox warnings with unactionable stuff,
+    // so for now just skip this message...
+    //console.warn('⚛️ DevTools: Could not locate saved component filters');
 
     // Fallback to assuming the default filters in this case.
     applyComponentFilters(getDefaultComponentFilters());
