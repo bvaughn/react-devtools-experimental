@@ -7,14 +7,14 @@ describe('console', () => {
   let enableConsole;
   let disableConsole;
   let fakeConsole;
+  let injectedInternals;
   let mockError;
   let mockLog;
   let mockWarn;
   let patchConsole;
 
   beforeEach(() => {
-    let inject = global.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject;
-    let injectedInternals = null;
+    const inject = global.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject;
     global.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = internals => {
       injectedInternals = internals;
       inject(internals);
@@ -93,16 +93,32 @@ describe('console', () => {
 
   it('should not append multiple stacks', () => {
     const Child = () => {
-      fakeConsole.warn('warn', '\n    in Child (at fake.js:123)');
+      fakeConsole.warn('warn\n    in Child (at fake.js:123)');
+      fakeConsole.error('error', '\n    in Child (at fake.js:123)');
       return null;
     };
 
     act(() => ReactDOM.render(<Child />, document.createElement('div')));
 
     expect(mockWarn).toHaveBeenCalledTimes(1);
-    expect(mockWarn.mock.calls[0]).toHaveLength(2);
-    expect(mockWarn.mock.calls[0][0]).toBe('warn');
-    expect(mockWarn.mock.calls[0][1]).toBe('\n    in Child (at fake.js:123)');
+    expect(mockWarn.mock.calls[0]).toHaveLength(1);
+    expect(mockWarn.mock.calls[0][0]).toBe(
+      'warn\n    in Child (at fake.js:123)'
+    );
+    expect(mockError).toHaveBeenCalledTimes(1);
+    expect(mockError.mock.calls[0]).toHaveLength(2);
+    expect(mockError.mock.calls[0][0]).toBe('error');
+    expect(mockError.mock.calls[0][1]).toBe('\n    in Child (at fake.js:123)');
+  });
+
+  it('should only patch the console once', () => {
+    const { error, warn } = fakeConsole;
+
+    // Simulate an additinoal React renderer injecting itself.
+    patchConsole(fakeConsole, (injectedInternals: any));
+
+    expect(fakeConsole.error).toBe(error);
+    expect(fakeConsole.warn).toBe(warn);
   });
 
   it('should append component stacks to errors and warnings logged during render', () => {

@@ -2,14 +2,15 @@
 
 import type { Fiber, ReactRenderer } from './types';
 
-let disabled: boolean = false;
+let isDisabled: boolean = false;
+let hasPatched: boolean = false;
 
 export function disable(): void {
-  disabled = true;
+  isDisabled = true;
 }
 
 export function enable(): void {
-  disabled = false;
+  isDisabled = false;
 }
 
 const FRAME_REGEX = /\n {4}in /;
@@ -18,6 +19,12 @@ export function patch(
   targetConsole: Object,
   { describeComponentFrame, getComponentName, getCurrentFiber }: ReactRenderer
 ): void {
+  if (hasPatched) {
+    return;
+  }
+
+  hasPatched = true;
+
   for (let method in targetConsole) {
     const appendComponentStack =
       typeof describeComponentFrame === 'function' &&
@@ -27,13 +34,13 @@ export function patch(
 
     const originalMethod = targetConsole[method];
     const overrideMethod = (...args) => {
-      if (disabled) return;
+      if (isDisabled) return;
 
       if (appendComponentStack) {
         // If we are ever called with a string that already has a component stack, e.g. a React error/warning,
         // don't append a second stack.
         const alreadyHasComponentStack =
-          args.length > 1 && FRAME_REGEX.exec(args[1]);
+          args.length > 0 && FRAME_REGEX.exec(args[args.length - 1]);
 
         if (!alreadyHasComponentStack) {
           // $FlowFixMe We know getCurrentFiber() is a function if appendComponentStack is true.
