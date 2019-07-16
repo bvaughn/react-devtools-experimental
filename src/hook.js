@@ -161,12 +161,21 @@ export function installHook(target: any): DevToolsHook | null {
     // * Append component stacks to warnings and error messages
     // * Disable logging during re-renders to inspect hooks (see inspectHooksOfFiber)
     //
-    // Patching the console now, rather than waiting for the frontend to "attach" itself,
-    // ensures React Native developers see components stacks even without running DevTools.
+    // For React Native, we intentionally patch early (during injection).
+    // This provides React Native developers with components stacks even if they don't run DevTools.
+    // This won't work for DOM though, since this entire file is eval'ed and inserted as a script tag.
+    // In that case, we'll patch later (when the frontend attaches).
     //
     // Don't patch in test environments because we don't want to interfere with Jest's own console overrides.
     if (process.env.NODE_ENV !== 'test') {
-      patchConsole(console, renderer);
+      try {
+        // We try/catch this instead of doing a typeof check,
+        // because Webpack generates JS output that will runtime error with the typeof check.
+        // e.g. typeof patchConsole === 'function'
+        // becomes: typeof _backend_console__WEBPACK_IMPORTED_MODULE_0__["patch"] === 'function'
+        // and _backend_console__WEBPACK_IMPORTED_MODULE_0__ itself is undefined
+        patchConsole(console, renderer);
+      } catch (error) {}
     }
 
     // If we have just reloaded to profile, we need to inject the renderer interface before the app loads.
