@@ -169,11 +169,13 @@ export function installHook(target: any): DevToolsHook | null {
     // Don't patch in test environments because we don't want to interfere with Jest's own console overrides.
     if (process.env.NODE_ENV !== 'test') {
       try {
-        // We try/catch this instead of doing a typeof check,
-        // because Webpack generates JS output that will runtime error with the typeof check.
-        // e.g. typeof patchConsole === 'function'
-        // becomes: typeof _backend_console__WEBPACK_IMPORTED_MODULE_0__["patch"] === 'function'
-        // and _backend_console__WEBPACK_IMPORTED_MODULE_0__ itself is undefined
+        // The installHook() function is injected by being stringified in the browser,
+        // so imports outside of this function do not get included.
+        //
+        // Normally we could check "typeof patchConsole === 'function'",
+        // but webpack wraps imports with an object (e.g. _backend_console__WEBPACK_IMPORTED_MODULE_0__)
+        // and the object itself will be undefined as well for the reasons mentioned above,
+        // so we use try/catch instead.
         patchConsole(console, renderer);
       } catch (error) {}
     }
