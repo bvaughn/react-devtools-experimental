@@ -43,6 +43,7 @@ import {
   disable as disableConsole,
   enable as enableConsole,
   patch as patchConsole,
+  registerRenderer as registerRendererWithConsole,
 } from './console';
 
 import type {
@@ -511,7 +512,14 @@ export function attach(
   //
   // Don't patch in test environments because we don't want to interfere with Jest's own console overrides.
   if (process.env.NODE_ENV !== 'test') {
-    patchConsole(console, renderer);
+    registerRendererWithConsole(renderer);
+
+    // The renderer interface can't read this preference directly,
+    // because it is stored in localStorage within the context of the extension.
+    // It relies on the extension to pass the preference through via the global.
+    if (window.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ !== false) {
+      patchConsole();
+    }
   }
 
   const debug = (name: string, fiber: Fiber, parentFiber: ?Fiber): void => {

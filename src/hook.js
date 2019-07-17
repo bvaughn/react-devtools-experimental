@@ -7,7 +7,10 @@
  * @flow
  */
 
-import { patch as patchConsole } from './backend/console';
+import {
+  patch as patchConsole,
+  registerRenderer as registerRendererWithConsole,
+} from './backend/console';
 
 import type { DevToolsHook } from 'src/backend/types';
 
@@ -173,10 +176,13 @@ export function installHook(target: any): DevToolsHook | null {
         // so imports outside of this function do not get included.
         //
         // Normally we could check "typeof patchConsole === 'function'",
-        // but webpack wraps imports with an object (e.g. _backend_console__WEBPACK_IMPORTED_MODULE_0__)
+        // but Webpack wraps imports with an object (e.g. _backend_console__WEBPACK_IMPORTED_MODULE_0__)
         // and the object itself will be undefined as well for the reasons mentioned above,
         // so we use try/catch instead.
-        patchConsole(console, renderer);
+        if (window.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ !== false) {
+          registerRendererWithConsole(renderer);
+          patchConsole();
+        }
       } catch (error) {}
     }
 

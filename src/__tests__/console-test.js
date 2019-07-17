@@ -7,17 +7,24 @@ describe('console', () => {
   let enableConsole;
   let disableConsole;
   let fakeConsole;
-  let injectedInternals;
   let mockError;
   let mockLog;
   let mockWarn;
   let patchConsole;
+  let unpatchConsole;
 
   beforeEach(() => {
+    const Console = require('../backend/console');
+    enableConsole = Console.enable;
+    disableConsole = Console.disable;
+    patchConsole = Console.patch;
+    unpatchConsole = Console.unpatch;
+
     const inject = global.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject;
     global.__REACT_DEVTOOLS_GLOBAL_HOOK__.inject = internals => {
-      injectedInternals = internals;
       inject(internals);
+
+      Console.registerRenderer(internals);
     };
 
     React = require('react');
@@ -25,11 +32,6 @@ describe('console', () => {
 
     const utils = require('./utils');
     act = utils.act;
-
-    const Console = require('../backend/console');
-    enableConsole = Console.enable;
-    disableConsole = Console.disable;
-    patchConsole = Console.patch;
 
     // Patch a fake console so we can verify with tests below.
     // Patching the real console is too complicated,
@@ -42,12 +44,32 @@ describe('console', () => {
       log: mockLog,
       warn: mockWarn,
     };
-    patchConsole(fakeConsole, (injectedInternals: any));
+
+    patchConsole(fakeConsole);
   });
 
   function normalizeCodeLocInfo(str) {
     return str && str.replace(/\(at .+?:\d+\)/g, '(at **)');
   }
+
+  it('should only patch the console once', () => {
+    const { error, warn } = fakeConsole;
+
+    patchConsole(fakeConsole);
+
+    expect(fakeConsole.error).toBe(error);
+    expect(fakeConsole.warn).toBe(warn);
+  });
+
+  it('should un-patch when requested', () => {
+    expect(fakeConsole.error).not.toBe(mockError);
+    expect(fakeConsole.warn).not.toBe(mockWarn);
+
+    unpatchConsole();
+
+    expect(fakeConsole.error).toBe(mockError);
+    expect(fakeConsole.warn).toBe(mockWarn);
+  });
 
   it('should pass through logs when there is no current fiber', () => {
     expect(mockLog).toHaveBeenCalledTimes(0);
@@ -109,16 +131,6 @@ describe('console', () => {
     expect(mockError.mock.calls[0]).toHaveLength(2);
     expect(mockError.mock.calls[0][0]).toBe('error');
     expect(mockError.mock.calls[0][1]).toBe('\n    in Child (at fake.js:123)');
-  });
-
-  it('should only patch the console once', () => {
-    const { error, warn } = fakeConsole;
-
-    // Simulate an additinoal React renderer injecting itself.
-    patchConsole(fakeConsole, (injectedInternals: any));
-
-    expect(fakeConsole.error).toBe(error);
-    expect(fakeConsole.warn).toBe(warn);
   });
 
   it('should append component stacks to errors and warnings logged during render', () => {
@@ -298,6 +310,40 @@ describe('console', () => {
     expect(mockError.mock.calls[0][0]).toBe('error');
     expect(normalizeCodeLocInfo(mockError.mock.calls[0][1])).toBe(
       '\n    in Child (at **)\n    in Parent (at **)'
+    );
+  });
+
+  it('should append stacks after being uninstalled and reinstalled', () => {
+    const Child = () => {
+      fakeConsole.warn('warn');
+      fakeConsole.error('error');
+      return null;
+    };
+
+    unpatchConsole();
+    act(() => ReactDOM.render(<Child />, document.createElement('div')));
+
+    expect(mockWarn).toHaveBeenCalledTimes(1);
+    expect(mockWarn.mock.calls[0]).toHaveLength(1);
+    expect(mockWarn.mock.calls[0][0]).toBe('warn');
+    expect(mockError).toHaveBeenCalledTimes(1);
+    expect(mockError.mock.calls[0]).toHaveLength(1);
+    expect(mockError.mock.calls[0][0]).toBe('error');
+
+    patchConsole(fakeConsole);
+    act(() => ReactDOM.render(<Child />, document.createElement('div')));
+
+    expect(mockWarn).toHaveBeenCalledTimes(2);
+    expect(mockWarn.mock.calls[1]).toHaveLength(2);
+    expect(mockWarn.mock.calls[1][0]).toBe('warn');
+    expect(normalizeCodeLocInfo(mockWarn.mock.calls[1][1])).toEqual(
+      '\n    in Child (at **)'
+    );
+    expect(mockError).toHaveBeenCalledTimes(2);
+    expect(mockError.mock.calls[1]).toHaveLength(2);
+    expect(mockError.mock.calls[1][0]).toBe('error');
+    expect(normalizeCodeLocInfo(mockError.mock.calls[1][1])).toBe(
+      '\n    in Child (at **)'
     );
   });
 });

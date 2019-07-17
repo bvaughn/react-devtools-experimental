@@ -5,8 +5,18 @@ import describeComponentFrame from './describeComponentFrame';
 
 import type { Fiber, ReactRenderer } from './types';
 
+const FRAME_REGEX = /\n {4}in /;
+
+const injectedRenderers: Map<
+  ReactRenderer,
+  {|
+    getCurrentFiber: () => Fiber | null,
+    getDisplayNameForFiber: (fiber: Fiber) => string | null,
+  |}
+> = new Map();
+
 let isDisabled: boolean = false;
-let hasPatched: boolean = false;
+let unpatchFn: null | (() => void) = null;
 
 export function disable(): void {
   isDisabled = true;
@@ -16,28 +26,44 @@ export function enable(): void {
   isDisabled = false;
 }
 
-const FRAME_REGEX = /\n {4}in /;
+export function registerRenderer(renderer: ReactRenderer): void {
+  const { getCurrentFiber, findFiberByHostInstance, version } = renderer;
 
-export function patch(
-  targetConsole: Object,
-  { getCurrentFiber, findFiberByHostInstance, version }: ReactRenderer
-): void {
-  if (hasPatched) {
-    return;
-  }
-
+  // Ignore React v15 and older because they don't expose a component stack anyway.
   if (typeof findFiberByHostInstance !== 'function') {
     return;
   }
 
-  const { getDisplayNameForFiber } = getInternalReactConstants(version);
+  if (typeof getCurrentFiber === 'function') {
+    const { getDisplayNameForFiber } = getInternalReactConstants(version);
 
-  hasPatched = true;
+    injectedRenderers.set(renderer, {
+      getCurrentFiber,
+      getDisplayNameForFiber,
+    });
+  }
+}
+
+export function patch(targetConsole?: Object = console): void {
+  if (unpatchFn !== null) {
+    // Don't patch twice.
+    return;
+  }
+
+  const originalConsoleMethods = { ...targetConsole };
+
+  unpatchFn = () => {
+    for (let method in targetConsole) {
+      try {
+        // $FlowFixMe property error|warn is not writable.
+        targetConsole[method] = originalConsoleMethods[method];
+      } catch (error) {}
+    }
+  };
 
   for (let method in targetConsole) {
     const appendComponentStack =
-      typeof getCurrentFiber === 'function' &&
-      (method === 'error' || method === 'warn' || method === 'trace');
+      method === 'error' || method === 'warn' || method === 'trace';
 
     const originalMethod = targetConsole[method];
     const overrideMethod = (...args) => {
@@ -50,26 +76,33 @@ export function patch(
           args.length > 0 && FRAME_REGEX.exec(args[args.length - 1]);
 
         if (!alreadyHasComponentStack) {
-          // $FlowFixMe We know getCurrentFiber() is a function if appendComponentStack is true.
-          let current: ?Fiber = getCurrentFiber();
-          let ownerStack: string = '';
-          while (current != null) {
-            const name = getDisplayNameForFiber(current);
-            const owner = current._debugOwner;
-            const ownerName =
-              owner != null ? getDisplayNameForFiber(owner) : null;
+          // If there's a component stack for at least one of the injected renderers, append it.
+          // We don't handle the edge case of stacks for more than one (e.g. interleaved renderers?)
+          for (let {
+            getCurrentFiber,
+            getDisplayNameForFiber,
+          } of injectedRenderers.values()) {
+            let current: ?Fiber = getCurrentFiber();
+            let ownerStack: string = '';
+            while (current != null) {
+              const name = getDisplayNameForFiber(current);
+              const owner = current._debugOwner;
+              const ownerName =
+                owner != null ? getDisplayNameForFiber(owner) : null;
 
-            ownerStack += describeComponentFrame(
-              name,
-              current._debugSource,
-              ownerName
-            );
+              ownerStack += describeComponentFrame(
+                name,
+                current._debugSource,
+                ownerName
+              );
 
-            current = owner;
-          }
+              current = owner;
+            }
 
-          if (ownerStack !== '') {
-            args.push(ownerStack);
+            if (ownerStack !== '') {
+              args.push(ownerStack);
+              break;
+            }
           }
         }
       }
@@ -81,5 +114,12 @@ export function patch(
       // $FlowFixMe property error|warn is not writable.
       targetConsole[method] = overrideMethod;
     } catch (error) {}
+  }
+}
+
+export function unpatch(): void {
+  if (unpatchFn !== null) {
+    unpatchFn();
+    unpatchFn = null;
   }
 }
