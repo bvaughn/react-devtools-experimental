@@ -784,7 +784,7 @@ function recursivelySearchTree(
   );
 }
 
-function getNearestResults (
+function getNearestResults(
   selectedElementID: number | null,
   searchResults: Array<number>
 ) {
