@@ -378,7 +378,7 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
         if (searchText !== '') {
           const regExp = createRegExp(searchText);
           store.roots.forEach(rootID => {
-            recursivelySearchTree(store, rootID, regExp, searchResults, selectedElementID, 0);
+            recursivelySearchTree(store, rootID, regExp, searchResults);
           });
 
           const firstIndexBiggerThanSelectedElement = searchResults.findIndex(
