@@ -378,7 +378,7 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
         if (searchText !== '') {
           const regExp = createRegExp(searchText);
           store.roots.forEach(rootID => {
-            recursivelySearchTree(store, rootID, regExp, searchResults);
+            recursivelySearchTree(store, rootID, regExp, searchResults, selectedElementID);
           });
 
           if (searchResults.length > 0) {
@@ -760,23 +760,42 @@ function TreeContextController({
     </TreeStateContext.Provider>
   );
 }
-
 function recursivelySearchTree(
   store: Store,
   elementID: number,
   regExp: RegExp,
-  searchResults: Array<number>
+  searchResults: Array<number>,
+  selectedElementID: number | null
 ): void {
   const { children, displayName } = ((store.getElementByID(
     elementID
   ): any): Element);
   if (displayName !== null) {
+    let index = searchResults.length - 1;
     if (regExp.test(displayName)) {
-      searchResults.push(elementID);
+      if (
+        searchResults.slice(-1) < selectedElementID &&
+        elementID >= selectedElementID
+      ) {
+        chrome.extension.getBackgroundPage().console.log('before: ', searchResults);
+
+        searchResults.push(elementID);
+        while (searchResults.slice(-1) < selectedElementID && index > 0) {
+          [searchResults[index], searchResults[index - 1]] = [
+            searchResults[index - 1],
+            searchResults[index],
+          ];
+          index--;
+        }
+
+        chrome.extension.getBackgroundPage().console.log('after: ', searchResults);
+      } else {
+        searchResults.push(elementID);
+      }
     }
   }
   children.forEach(childID =>
-    recursivelySearchTree(store, childID, regExp, searchResults)
+    recursivelySearchTree(store, childID, regExp, searchResults, selectedElementID)
   );
 }
 
