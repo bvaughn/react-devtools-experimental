@@ -381,9 +381,10 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
             recursivelySearchTree(store, rootID, regExp, searchResults);
           });
 
-          const firstIndexBiggerThanSelectedElement = searchResults.findIndex(
-            value => value > selectedElementID
-          );
+          const firstIndexBiggerThanSelectedElement =
+            selectedElementID &&
+            searchResults.findIndex(value => value > selectedElementID);
+
           const searchWithNearestResults = [
             ...searchResults.slice(firstIndexBiggerThanSelectedElement),
             ...searchResults.slice(0, firstIndexBiggerThanSelectedElement),
