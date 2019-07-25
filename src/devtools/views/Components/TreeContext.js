@@ -378,16 +378,24 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
         if (searchText !== '') {
           const regExp = createRegExp(searchText);
           store.roots.forEach(rootID => {
-            recursivelySearchTree(store, rootID, regExp, searchResults, selectedElementID);
+            recursivelySearchTree(store, rootID, regExp, searchResults, selectedElementID, 0);
           });
 
-          if (searchResults.length > 0) {
+          const firstIndexBiggerThanSelectedElement = searchResults.findIndex(
+            value => value > selectedElementID
+          );
+          const searchWithNearestResults = [
+            ...searchResults.slice(firstIndexBiggerThanSelectedElement),
+            ...searchResults.slice(0, firstIndexBiggerThanSelectedElement),
+          ];
+
+          if (searchWithNearestResults.length > 0) {
             if (prevSearchIndex === null) {
               searchIndex = 0;
             } else {
               searchIndex = Math.min(
                 ((prevSearchIndex: any): number),
-                searchResults.length - 1
+                searchWithNearestResults.length - 1
               );
             }
           }
@@ -764,38 +772,18 @@ function recursivelySearchTree(
   store: Store,
   elementID: number,
   regExp: RegExp,
-  searchResults: Array<number>,
-  selectedElementID: number | null
+  searchResults: Array<number>
 ): void {
   const { children, displayName } = ((store.getElementByID(
     elementID
   ): any): Element);
   if (displayName !== null) {
-    let index = searchResults.length - 1;
     if (regExp.test(displayName)) {
-      if (
-        searchResults.slice(-1) < selectedElementID &&
-        elementID >= selectedElementID
-      ) {
-        chrome.extension.getBackgroundPage().console.log('before: ', searchResults);
-
-        searchResults.push(elementID);
-        while (searchResults.slice(-1) < selectedElementID && index > 0) {
-          [searchResults[index], searchResults[index - 1]] = [
-            searchResults[index - 1],
-            searchResults[index],
-          ];
-          index--;
-        }
-
-        chrome.extension.getBackgroundPage().console.log('after: ', searchResults);
-      } else {
-        searchResults.push(elementID);
-      }
+      searchResults.push(elementID);
     }
   }
   children.forEach(childID =>
-    recursivelySearchTree(store, childID, regExp, searchResults, selectedElementID)
+    recursivelySearchTree(store, childID, regExp, searchResults)
   );
 }
 
