@@ -277,7 +277,6 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
     selectedElementIndex,
   } = state;
 
-  const prevSearchIndex = searchIndex;
   const prevSearchText = searchText;
   const numPrevSearchResults = searchResults.length;
 
@@ -383,6 +382,7 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
 
           if (searchResults.length > 0) {
             if (selectedElementID) {
+              // If there's an element selected, gets the nearest result
               searchIndex = searchResults.findIndex(
                 value => value >= selectedElementID
               );
