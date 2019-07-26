@@ -774,7 +774,10 @@ function recursivelySearchTree(
   );
 }
 
-function getNearestResult(searchResults: Array<number>, selectedElementID: number | null){
+function getNearestResult(
+  searchResults: Array<number>,
+  selectedElementID: number | null
+) {
   const result = searchResults.findIndex(
     value => value >= ((selectedElementID: any): number)
   );
