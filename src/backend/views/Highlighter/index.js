@@ -12,7 +12,7 @@ import type { BackendBridge } from 'src/bridge';
 // It is not currently the mechanism used to highlight React Native views.
 // That is done by the React Native Inspector component.
 
-let iframesListeningTo = new Set();
+let iframesListeningTo: Set<HTMLIFrameElement> = new Set();
 
 export default function setupHighlighter(
   bridge: BackendBridge,
@@ -144,11 +144,12 @@ export default function setupHighlighter(
     const target = ((event.target: any): HTMLElement);
 
     if (target.tagName === 'IFRAME') {
+      const iframe: HTMLIFrameElement = (target: any);
       try {
-        if (!iframesListeningTo.has(target)) {
-          const window = target.contentWindow;
+        if (!iframesListeningTo.has(iframe)) {
+          const window = iframe.contentWindow;
           registerListenersOnWindow(window);
-          iframesListeningTo.add(target);
+          iframesListeningTo.add(iframe);
         }
       } catch (error) {
         // This can error when the iframe is on a cross-origin.
