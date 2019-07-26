@@ -381,13 +381,13 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
           });
 
           if (searchResults.length > 0) {
-            if (selectedElementID) {
+            if (selectedElementID !== null) {
+              searchIndex = 0;
+            } else {
               // If there's an element selected, gets the nearest result
               searchIndex = searchResults.findIndex(
                 value => value >= selectedElementID
               );
-            } else {
-              searchIndex = 0;
             }
           }
         }
