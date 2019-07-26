@@ -370,7 +370,7 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
         }
         break;
       case 'SET_SEARCH_TEXT':
-        searchIndex = null;
+        searchIndex = 0;
         searchResults = [];
         searchText = (action: ACTION_SET_SEARCH_TEXT).payload;
 
@@ -379,15 +379,11 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
           store.roots.forEach(rootID => {
             recursivelySearchTree(store, rootID, regExp, searchResults);
           });
-
           if (searchResults.length > 0) {
             if (selectedElementID !== null) {
-              // If there's an element selected, gets the nearest result
               searchIndex = searchResults.findIndex(
-                value => value >= selectedElementID
+                value => value >= ((selectedElementID: any): number)
               );
-            } else {
-              searchIndex = 0;
             }
           }
         }
