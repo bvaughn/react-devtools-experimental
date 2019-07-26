@@ -48,7 +48,11 @@ export default function setupHighlighter(
     hideOverlay();
     removeListenersOnWindow(window);
     iframesListeningTo.forEach(function(frame) {
-      removeListenersOnWindow(frame.contentWindow);
+      try {
+        removeListenersOnWindow(frame.contentWindow);
+      } catch (error) {
+        // This can error when the iframe is on a cross-origin.
+      }
     });
     iframesListeningTo = new Set();
   }
