@@ -370,7 +370,7 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
         }
         break;
       case 'SET_SEARCH_TEXT':
-        searchIndex = 0;
+        searchIndex = null;
         searchResults = [];
         searchText = (action: ACTION_SET_SEARCH_TEXT).payload;
 
@@ -384,6 +384,8 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
               searchIndex = searchResults.findIndex(
                 value => value >= ((selectedElementID: any): number)
               );
+            } else {
+              searchIndex = 0;
             }
           }
         }
