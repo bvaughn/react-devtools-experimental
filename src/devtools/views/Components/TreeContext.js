@@ -381,9 +381,7 @@ function reduceSearchState(store: Store, state: State, action: Action): State {
           });
           if (searchResults.length > 0) {
             if (selectedElementID !== null) {
-              searchIndex = searchResults.findIndex(
-                value => value >= ((selectedElementID: any): number)
-              );
+              searchIndex = getNearestResult(searchResults, selectedElementID);
             } else {
               searchIndex = 0;
             }
@@ -774,6 +772,14 @@ function recursivelySearchTree(
   children.forEach(childID =>
     recursivelySearchTree(store, childID, regExp, searchResults)
   );
+}
+
+function getNearestResult(searchResults: Array<number>, selectedElementID: number | null){
+  const result = searchResults.findIndex(
+    value => value >= ((selectedElementID: any): number)
+  );
+
+  return result === -1 ? 0 : result;
 }
 
 export { TreeDispatcherContext, TreeStateContext, TreeContextController };
