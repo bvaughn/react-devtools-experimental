@@ -20,6 +20,9 @@ const { contentDocument, contentWindow } = iframe;
 contentWindow.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = getSavedComponentFilters();
 contentWindow.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = getAppendComponentStack();
 
+// Helps with positioning Overlay UI.
+contentWindow.__REACT_DEVTOOLS_TARGET_WINDOW__ = window;
+
 installHook(contentWindow);
 
 const container = ((document.getElementById('devtools'): any): HTMLElement);
