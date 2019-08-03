@@ -21,27 +21,15 @@ initBackend();
 Configures the DevTools interface to listen to a target `iframe`. This method returns a React element that can be rendered directly.
 
 ```js
+import React from 'react';
 import initFrontend from 'react-devtools-inline/initFrontend';
 
-export default function DevTools({ frameID }) {
-  const [ui, setUI] = useState(null);
+// This should be the iframe the backend hook has been installed in.
+const iframe = document.getElementById(frameID);
 
-  useEffect(() => {
-    if (ui === null) {
-      const frame = document.getElementById(frameID);
-
-      const optionalProps = {
-        // Custom props go here...
-      };
-
-      setUI(
-        initFrontend(frame, optionalProps)
-      );
-    }
-  }, [ui]);
-
-  return ui;
-}
+// This returns a React component that can be rendered into your app.
+// <DevTools {...props} />
+const DevTools = initFrontend(iframe);
 ```
 
 ## `react-devtools-inline/installHook`
