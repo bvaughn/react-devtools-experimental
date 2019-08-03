@@ -10,7 +10,6 @@
   },
   "files": [
     "dist",
-    "DevTools.js",
     "initBackend.js",
     "initFrontend.js",
     "installHook.js"
