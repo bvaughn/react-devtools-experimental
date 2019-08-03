@@ -36,6 +36,7 @@ module.exports = {
   externals: {
     react: 'react',
     'react-dom': 'react-dom',
+    scheduler: 'scheduler',
   },
   plugins: [
     new DefinePlugin({
