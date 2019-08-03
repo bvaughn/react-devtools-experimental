@@ -16,6 +16,8 @@ if (!TARGET) {
 
 const __DEV__ = NODE_ENV === 'development';
 
+const root = resolve(__dirname, '../..');
+
 const GITHUB_URL = getGitHubURL();
 const DEVTOOLS_VERSION = getVersionString();
 
@@ -29,7 +31,11 @@ const config = {
   },
   resolve: {
     alias: {
-      src: resolve(__dirname, '../../src'),
+      'react-devtools-inline': resolve(
+        root,
+        'packages/react-devtools-inline/src/'
+      ),
+      src: resolve(root, 'src'),
     },
   },
   plugins: [
@@ -45,7 +51,7 @@ const config = {
         test: /\.js$/,
         loader: 'babel-loader',
         options: {
-          configFile: require.resolve('../../babel.config.js'),
+          configFile: resolve(root, 'babel.config.js'),
         },
       },
       {

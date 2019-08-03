@@ -17,7 +17,6 @@ module.exports = {
   mode: __DEV__ ? 'development' : 'production',
   devtool: false,
   entry: {
-    DevTools: './src/DevTools.js',
     initBackend: './src/initBackend.js',
     initFrontend: './src/initFrontend.js',
     installHook: './src/installHook.js',

@@ -13,7 +13,7 @@ let store: Store = ((null: any): Store);
 
 export default function initFrontend(
   frame: HTMLIFrameElement,
-  overrideProps?: Object
+  targetWindow: window = window
 ): React$AbstractComponent<Props, mixed> {
   if (bridge === null) {
     const { contentWindow } = frame;
@@ -23,9 +23,9 @@ export default function initFrontend(
         const listener = ({ data }) => {
           fn(data);
         };
-        window.addEventListener('message', listener);
+        targetWindow.addEventListener('message', listener);
         return () => {
-          window.removeEventListener('message', listener);
+          targetWindow.removeEventListener('message', listener);
         };
       },
       send(event: string, payload: any, transferable?: Array<any>) {

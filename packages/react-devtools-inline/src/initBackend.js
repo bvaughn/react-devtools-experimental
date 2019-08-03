@@ -3,6 +3,7 @@
 import Agent from 'src/backend/agent';
 import Bridge from 'src/bridge';
 import { initBackend } from 'src/backend';
+import setupNativeStyleEditor from 'src/backend/NativeStyleEditor/setupNativeStyleEditor';
 
 export default function() {
   const bridge = new Bridge({
@@ -25,4 +26,14 @@ export default function() {
   const hook = window.__REACT_DEVTOOLS_GLOBAL_HOOK__;
 
   initBackend(hook, agent, window);
+
+  // Setup React Native style editor if a renderer like react-native-web has injected it.
+  if (!!hook.resolveRNStyle) {
+    setupNativeStyleEditor(
+      bridge,
+      agent,
+      hook.resolveRNStyle,
+      hook.nativeStyleEditorValidAttributes
+    );
+  }
 }

@@ -3,11 +3,9 @@
 import { createElement } from 'react';
 // $FlowFixMe Flow does not yet know about createRoot()
 import { unstable_createRoot as createRoot } from 'react-dom';
-import Bridge from 'src/bridge';
-import { installHook } from 'src/hook';
+import initFrontend from 'react-devtools-inline/initFrontend';
+import installHook from 'react-devtools-inline/installHook';
 import { initDevTools } from 'src/devtools';
-import Store from 'src/devtools/store';
-import DevTools from 'src/devtools/views/DevTools';
 import { getSavedComponentFilters, getAppendComponentStack } from 'src/utils';
 
 const iframe = ((document.getElementById('target'): any): HTMLIFrameElement);
@@ -51,36 +49,15 @@ mountButton.addEventListener('click', function() {
 inject('dist/app.js', () => {
   initDevTools({
     connect(cb) {
-      const bridge = new Bridge({
-        listen(fn) {
-          const listener = ({ data }) => {
-            fn(data);
-          };
-          // Preserve the reference to the window we subscribe to, so we can unsubscribe from it when required.
-          const contentWindowParent = contentWindow.parent;
-          contentWindowParent.addEventListener('message', listener);
-          return () => {
-            contentWindowParent.removeEventListener('message', listener);
-          };
-        },
-        send(event: string, payload: any, transferable?: Array<any>) {
-          contentWindow.postMessage({ event, payload }, '*', transferable);
-        },
-      });
-
-      cb(bridge);
-
-      const store = new Store(bridge);
+      const DevTools = initFrontend(iframe, contentWindow.parent);
 
       const root = createRoot(container);
       const batch = root.createBatch();
       batch.render(
         createElement(DevTools, {
-          bridge,
           browserTheme: 'light',
           showTabBar: true,
           showWelcomeToTheNewDevToolsDialog: true,
-          store,
           warnIfLegacyBackendDetected: true,
         })
       );
