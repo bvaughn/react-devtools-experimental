@@ -38,7 +38,10 @@ export function initialize(
     store = new Store(bridge);
   }
 
-  return forwardRef<Props, mixed>((props, ref) => (
+  const ForwardRef = forwardRef<Props, mixed>((props, ref) => (
     <DevTools ref={ref} bridge={bridge} store={store} {...props} />
   ));
+  ForwardRef.displayName = 'DevTools';
+
+  return ForwardRef;
 }
