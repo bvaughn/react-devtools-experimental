@@ -11,7 +11,7 @@ import type { Props } from 'src/devtools/views/DevTools';
 let bridge: FrontendBridge = ((null: any): FrontendBridge);
 let store: Store = ((null: any): Store);
 
-export default function initFrontend(
+export function initialize(
   frame: HTMLIFrameElement,
   targetWindow: window = window
 ): React$AbstractComponent<Props, mixed> {

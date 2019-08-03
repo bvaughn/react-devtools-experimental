@@ -17,9 +17,8 @@ module.exports = {
   mode: __DEV__ ? 'development' : 'production',
   devtool: false,
   entry: {
-    initBackend: './src/initBackend.js',
-    initFrontend: './src/initFrontend.js',
-    installHook: './src/installHook.js',
+    backend: './src/backend.js',
+    frontend: './src/frontend.js',
   },
   output: {
     path: __dirname + '/dist',

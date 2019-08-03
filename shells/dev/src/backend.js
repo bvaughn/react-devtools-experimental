@@ -1,5 +1,5 @@
 /** @flow */
 
-import initBackend from 'react-devtools-inline/initBackend';
+import { activate } from 'react-devtools-inline/backend';
 
-initBackend();
+activate();

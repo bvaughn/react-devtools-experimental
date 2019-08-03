@@ -3,8 +3,8 @@
 import { createElement } from 'react';
 // $FlowFixMe Flow does not yet know about createRoot()
 import { unstable_createRoot as createRoot } from 'react-dom';
-import initFrontend from 'react-devtools-inline/initFrontend';
-import installHook from 'react-devtools-inline/installHook';
+import { initialize as initializeBackend } from 'react-devtools-inline/backend';
+import { initialize as initializeFrontend } from 'react-devtools-inline/frontend';
 import { initDevTools } from 'src/devtools';
 import { getSavedComponentFilters, getAppendComponentStack } from 'src/utils';
 
@@ -21,7 +21,7 @@ contentWindow.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = getAppendComponentStac
 // Helps with positioning Overlay UI.
 contentWindow.__REACT_DEVTOOLS_TARGET_WINDOW__ = window;
 
-installHook(contentWindow);
+initializeBackend(contentWindow);
 
 const container = ((document.getElementById('devtools'): any): HTMLElement);
 
@@ -49,7 +49,7 @@ mountButton.addEventListener('click', function() {
 inject('dist/app.js', () => {
   initDevTools({
     connect(cb) {
-      const DevTools = initFrontend(iframe, contentWindow.parent);
+      const DevTools = initializeFrontend(iframe, contentWindow.parent);
 
       const root = createRoot(container);
       const batch = root.createBatch();
