@@ -1,7 +1,7 @@
 {
   "name": "react-devtools-inline",
   "version": "4.0.0-alpha.7",
-  "description": "Use react-devtools within an iframe",
+  "description": "Embed react-devtools within a website",
   "license": "MIT",
   "main": "./dist/backend.js",
   "repository": {
