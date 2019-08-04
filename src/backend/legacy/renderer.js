@@ -633,6 +633,7 @@ export function attach(
         };
         break;
       default:
+        global.$r = null;
         break;
     }
   }
