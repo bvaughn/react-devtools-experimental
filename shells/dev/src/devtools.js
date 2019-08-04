@@ -3,7 +3,10 @@
 import { createElement } from 'react';
 // $FlowFixMe Flow does not yet know about createRoot()
 import { unstable_createRoot as createRoot } from 'react-dom';
-import { initialize as initializeBackend } from 'react-devtools-inline/backend';
+import {
+  activate as activateBackend,
+  initialize as initializeBackend,
+} from 'react-devtools-inline/backend';
 import { initialize as initializeFrontend } from 'react-devtools-inline/frontend';
 import { initDevTools } from 'src/devtools';
 import { getSavedComponentFilters, getAppendComponentStack } from 'src/utils';
@@ -49,11 +52,14 @@ mountButton.addEventListener('click', function() {
 inject('dist/app.js', () => {
   initDevTools({
     connect(cb) {
-      const DevTools = initializeFrontend(iframe, contentWindow.parent);
+      const DevTools = initializeFrontend(contentWindow);
+
+      // Activate the backend only once the DevTools frontend Store has been initialized.
+      // Otherwise the Store may miss important initial tree op codes.
+      activateBackend(contentWindow);
 
       const root = createRoot(container);
-      const batch = root.createBatch();
-      batch.render(
+      root.render(
         createElement(DevTools, {
           browserTheme: 'light',
           showTabBar: true,
@@ -61,13 +67,6 @@ inject('dist/app.js', () => {
           warnIfLegacyBackendDetected: true,
         })
       );
-      batch.then(() => {
-        batch.commit();
-
-        // Initialize the backend only once the DevTools frontend Store has been initialized.
-        // Otherwise the Store may miss important initial tree op codes.
-        inject('dist/backend.js');
-      });
     },
 
     onReload(reloadFn) {

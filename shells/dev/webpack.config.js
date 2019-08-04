@@ -26,7 +26,6 @@ const config = {
   devtool: false,
   entry: {
     app: './app/index.js',
-    backend: './src/backend.js',
     devtools: './src/devtools.js',
   },
   resolve: {

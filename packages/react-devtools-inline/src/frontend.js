@@ -12,20 +12,17 @@ let bridge: FrontendBridge = ((null: any): FrontendBridge);
 let store: Store = ((null: any): Store);
 
 export function initialize(
-  frame: HTMLIFrameElement,
-  targetWindow: window = window
+  contentWindow: window
 ): React$AbstractComponent<Props, mixed> {
   if (bridge === null) {
-    const { contentWindow } = frame;
-
     bridge = new Bridge({
       listen(fn) {
         const listener = ({ data }) => {
           fn(data);
         };
-        targetWindow.addEventListener('message', listener);
+        window.addEventListener('message', listener);
         return () => {
-          targetWindow.removeEventListener('message', listener);
+          window.removeEventListener('message', listener);
         };
       },
       send(event: string, payload: any, transferable?: Array<any>) {
