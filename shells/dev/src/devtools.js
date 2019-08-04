@@ -9,17 +9,10 @@ import {
 } from 'react-devtools-inline/backend';
 import { initialize as initializeFrontend } from 'react-devtools-inline/frontend';
 import { initDevTools } from 'src/devtools';
-import { getSavedComponentFilters, getAppendComponentStack } from 'src/utils';
 
 const iframe = ((document.getElementById('target'): any): HTMLIFrameElement);
 
 const { contentDocument, contentWindow } = iframe;
-
-// The renderer interface can't read saved component filters directly,
-// because they are stored in localStorage within the context of the extension.
-// Instead it relies on the extension to pass filters through.
-contentWindow.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = getSavedComponentFilters();
-contentWindow.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = getAppendComponentStack();
 
 // Helps with positioning Overlay UI.
 contentWindow.__REACT_DEVTOOLS_TARGET_WINDOW__ = window;

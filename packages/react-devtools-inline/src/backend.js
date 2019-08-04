@@ -4,10 +4,46 @@ import Agent from 'src/backend/agent';
 import Bridge from 'src/bridge';
 import { initBackend } from 'src/backend';
 import { installHook } from 'src/hook';
-import { getSavedComponentFilters, getAppendComponentStack } from 'src/utils';
 import setupNativeStyleEditor from 'src/backend/NativeStyleEditor/setupNativeStyleEditor';
 
-export function activate(contentWindow: window): void {
+function startActivation(contentWindow: window) {
+  const { parent } = contentWindow;
+
+  const listener = ({ data }) => {
+    switch (data.type) {
+      case 'saved-filters':
+        contentWindow.removeEventListener('message', listener);
+
+        const { appendComponentStack, componentFilters } = data;
+
+        contentWindow.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = appendComponentStack;
+        contentWindow.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = componentFilters;
+
+        // TODO Comment why
+        if (contentWindow !== window) {
+          window.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = appendComponentStack;
+          window.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = componentFilters;
+        }
+
+        finishActivation(contentWindow);
+        break;
+      default:
+        break;
+    }
+  };
+
+  contentWindow.addEventListener('message', listener);
+
+  // The backend may be unable to read saved component filters directly,
+  // because they are stored in localStorage within the context of the extension (on the frnotend).
+  // It relies on the extension to pass filters through.
+  // Because we might be in a sandboxed iframe, we have to ask for them by way of postMessage().
+  parent.postMessage({ type: 'get-saved-filters' }, '*');
+}
+
+function finishActivation(contentWindow: window) {
+  const { parent } = contentWindow;
+
   const bridge = new Bridge({
     listen(fn) {
       const listener = event => {
@@ -19,7 +55,7 @@ export function activate(contentWindow: window): void {
       };
     },
     send(event: string, payload: any, transferable?: Array<any>) {
-      contentWindow.parent.postMessage({ event, payload }, '*', transferable);
+      parent.postMessage({ event, payload }, '*', transferable);
     },
   });
 
@@ -40,12 +76,10 @@ export function activate(contentWindow: window): void {
   }
 }
 
-export function initialize(contentWindow: window): void {
-  // The renderer interface can't read saved component filters directly,
-  // because they are stored in localStorage within the context of the extension.
-  // Instead it relies on the extension to pass filters through.
-  contentWindow.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = getSavedComponentFilters();
-  contentWindow.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = getAppendComponentStack();
+export function activate(contentWindow: window): void {
+  startActivation(contentWindow);
+}
 
+export function initialize(contentWindow: window): void {
   installHook(contentWindow);
 }
