@@ -19,7 +19,12 @@ function startActivation(contentWindow: window) {
         contentWindow.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = appendComponentStack;
         contentWindow.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = componentFilters;
 
-        // TODO Comment why
+        // TRICKY
+        // The backend entry point may be required in the context of an iframe or the parent window.
+        // If it's required within the parent window, store the saved values on it as well,
+        // since the injected renderer interface will read from window.
+        // Technically we don't need to store them on the contentWindow in this case,
+        // but it doesn't really hurt anything to store them there too.
         if (contentWindow !== window) {
           window.__REACT_DEVTOOLS_APPEND_COMPONENT_STACK__ = appendComponentStack;
           window.__REACT_DEVTOOLS_COMPONENT_FILTERS__ = componentFilters;
