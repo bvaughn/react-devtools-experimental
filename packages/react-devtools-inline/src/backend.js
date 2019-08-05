@@ -5,14 +5,20 @@ import Bridge from 'src/bridge';
 import { initBackend } from 'src/backend';
 import { installHook } from 'src/hook';
 import setupNativeStyleEditor from 'src/backend/NativeStyleEditor/setupNativeStyleEditor';
+import {
+  MESSAGE_TYPE_GET_SAVED_PREFERENCES,
+  MESSAGE_TYPE_SAVED_PREFERENCES,
+} from './constants';
 
 function startActivation(contentWindow: window) {
   const { parent } = contentWindow;
 
-  const listener = ({ data }) => {
+  const onMessage = ({ data }) => {
     switch (data.type) {
-      case 'saved-filters':
-        contentWindow.removeEventListener('message', listener);
+      case MESSAGE_TYPE_SAVED_PREFERENCES:
+        // This is the only message we're listening for,
+        // so it's safe to cleanup after we've received it.
+        contentWindow.removeEventListener('message', onMessage);
 
         const { appendComponentStack, componentFilters } = data;
 
@@ -37,13 +43,13 @@ function startActivation(contentWindow: window) {
     }
   };
 
-  contentWindow.addEventListener('message', listener);
+  contentWindow.addEventListener('message', onMessage);
 
-  // The backend may be unable to read saved component filters directly,
-  // because they are stored in localStorage within the context of the extension (on the frnotend).
-  // It relies on the extension to pass filters through.
+  // The backend may be unable to read saved preferences directly,
+  // because they are stored in localStorage within the context of the extension (on the frontend).
+  // Instead it relies on the extension to pass preferences through.
   // Because we might be in a sandboxed iframe, we have to ask for them by way of postMessage().
-  parent.postMessage({ type: 'get-saved-filters' }, '*');
+  parent.postMessage({ type: MESSAGE_TYPE_GET_SAVED_PREFERENCES }, '*');
 }
 
 function finishActivation(contentWindow: window) {
@@ -51,12 +57,12 @@ function finishActivation(contentWindow: window) {
 
   const bridge = new Bridge({
     listen(fn) {
-      const listener = event => {
+      const onMessage = event => {
         fn(event.data);
       };
-      contentWindow.addEventListener('message', listener);
+      contentWindow.addEventListener('message', onMessage);
       return () => {
-        contentWindow.removeEventListener('message', listener);
+        contentWindow.removeEventListener('message', onMessage);
       };
     },
     send(event: string, payload: any, transferable?: Array<any>) {

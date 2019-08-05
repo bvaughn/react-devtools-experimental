@@ -5,27 +5,30 @@ import Bridge from 'src/bridge';
 import Store from 'src/devtools/store';
 import DevTools from 'src/devtools/views/DevTools';
 import { getSavedComponentFilters, getAppendComponentStack } from 'src/utils';
+import {
+  MESSAGE_TYPE_GET_SAVED_PREFERENCES,
+  MESSAGE_TYPE_SAVED_PREFERENCES,
+} from './constants';
 
 import type { FrontendBridge } from 'src/bridge';
 import type { Props } from 'src/devtools/views/DevTools';
 
-let bridge: FrontendBridge = ((null: any): FrontendBridge);
-let store: Store = ((null: any): Store);
-
 export function initialize(
   contentWindow: window
 ): React$AbstractComponent<Props, mixed> {
-  const listener = ({ data, origin, source }) => {
+  const onMessage = ({ data, origin, source }) => {
     switch (data.type) {
-      case 'get-saved-filters':
-        window.removeEventListener('message', listener);
+      case MESSAGE_TYPE_GET_SAVED_PREFERENCES:
+        // This is the only message we're listening for,
+        // so it's safe to cleanup after we've received it.
+        window.removeEventListener('message', onMessage);
 
-        // The renderer interface can't read saved component filters directly,
+        // The renderer interface can't read saved preferences directly,
         // because they are stored in localStorage within the context of the extension.
-        // Instead it relies on the extension to pass filters through.
+        // Instead it relies on the extension to pass them through.
         contentWindow.postMessage(
           {
-            type: 'saved-filters',
+            type: MESSAGE_TYPE_SAVED_PREFERENCES,
             appendComponentStack: getAppendComponentStack(),
             componentFilters: getSavedComponentFilters(),
           },
@@ -37,28 +40,24 @@ export function initialize(
     }
   };
 
-  window.addEventListener('message', listener);
+  window.addEventListener('message', onMessage);
 
-  if (bridge === null) {
-    bridge = new Bridge({
-      listen(fn) {
-        const listener = ({ data }) => {
-          fn(data);
-        };
-        window.addEventListener('message', listener);
-        return () => {
-          window.removeEventListener('message', listener);
-        };
-      },
-      send(event: string, payload: any, transferable?: Array<any>) {
-        contentWindow.postMessage({ event, payload }, '*', transferable);
-      },
-    });
-  }
+  const bridge: FrontendBridge = new Bridge({
+    listen(fn) {
+      const onMessage = ({ data }) => {
+        fn(data);
+      };
+      window.addEventListener('message', onMessage);
+      return () => {
+        window.removeEventListener('message', onMessage);
+      };
+    },
+    send(event: string, payload: any, transferable?: Array<any>) {
+      contentWindow.postMessage({ event, payload }, '*', transferable);
+    },
+  });
 
-  if (store === null) {
-    store = new Store(bridge);
-  }
+  const store: Store = new Store(bridge);
 
   const ForwardRef = forwardRef<Props, mixed>((props, ref) => (
     <DevTools ref={ref} bridge={bridge} store={store} {...props} />
