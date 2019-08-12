@@ -34,6 +34,7 @@ export default function InspectHostNodesToggle() {
       onChange={handleChange}
       isChecked={isInspecting}
       title="Select an element in the page to inspect it"
+      dataTutorialID="hostNodeSelectorToggle"
     >
       <ButtonIcon type="search" />
     </Toggle>

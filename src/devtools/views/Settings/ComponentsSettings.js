@@ -265,6 +265,7 @@ export default function ComponentsSettings(_: {||}) {
                       ? ''
                       : styles.InvalidRegExp
                   }
+                  dataTutorialID="componentFilterToggle"
                   isChecked={componentFilter.isEnabled}
                   onChange={isEnabled =>
                     toggleFilterIsEnabled(componentFilter, isEnabled)
@@ -289,6 +290,7 @@ export default function ComponentsSettings(_: {||}) {
               <td className={styles.TableCell}>
                 <select
                   className={styles.Select}
+                  data-tutorial-id="componentFilterTypeSelect"
                   value={componentFilter.type}
                   onChange={({ currentTarget }) =>
                     changeFilterType(
@@ -342,6 +344,7 @@ export default function ComponentsSettings(_: {||}) {
                   componentFilter.type === ComponentFilterDisplayName) && (
                   <input
                     className={styles.Input}
+                    data-tutorial-id="componentFilterTextInput"
                     type="text"
                     placeholder="Regular expression"
                     onChange={({ currentTarget }) =>
@@ -367,7 +370,7 @@ export default function ComponentsSettings(_: {||}) {
         </tbody>
       </table>
 
-      <Button onClick={addFilter}>
+      <Button dataTutorialID="addComponentFilterButton" onClick={addFilter}>
         <ButtonIcon className={styles.ButtonIcon} type="add" />
         Add filter
       </Button>

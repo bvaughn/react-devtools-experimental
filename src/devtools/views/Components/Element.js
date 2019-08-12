@@ -108,6 +108,7 @@ export default function ElementView({ data, index, style }: Props) {
       {/* This wrapper is used by Tree for measurement purposes. */}
       <div
         className={styles.Wrapper}
+        data-tutorial-id={displayName ? `element-name-${displayName}` : undefined}
         style={{
           // Left offset presents the appearance of a nested tree structure.
           // We must use padding rather than margin/left because of the selected background color.

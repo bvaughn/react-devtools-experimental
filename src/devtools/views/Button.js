@@ -9,17 +9,23 @@ import tooltipStyles from './Tooltip.css';
 type Props = {
   children: React$Node,
   className?: string,
+  dataTutorialID?: string,
   title?: string,
 };
 
 export default function Button({
   children,
   className = '',
+  dataTutorialID,
   title = '',
   ...rest
 }: Props) {
   let button = (
-    <button className={`${styles.Button} ${className}`} {...rest}>
+    <button
+      className={`${styles.Button} ${className}`}
+      data-tutorial-id={dataTutorialID}
+      {...rest}
+    >
       <span className={`${styles.ButtonContent} ${className}`} tabIndex={-1}>
         {children}
       </span>

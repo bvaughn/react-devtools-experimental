@@ -36,6 +36,7 @@ export default function SettingsModalContextToggle() {
       disabled={isProfiling}
       onClick={showFilterModal}
       title="View settings"
+      dataTutorialID="openSettingsDialogButton"
     >
       <ButtonIcon type="settings" />
     </Button>

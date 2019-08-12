@@ -104,7 +104,11 @@ function SettingsModalImpl(_: {||}) {
             type="settings"
           />
           <div className={styles.Spacer} />
-          <Button onClick={dismissModal} title="Close settings dialog">
+          <Button
+            dataTutorialID="closeSettingsDialogButton"
+            onClick={dismissModal}
+            title="Close settings dialog"
+          >
             <ButtonIcon type="close" />
           </Button>
         </div>

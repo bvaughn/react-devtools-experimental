@@ -9,6 +9,7 @@ import tooltipStyles from './Tooltip.css';
 type Props = {
   children: React$Node,
   className?: string,
+  dataTutorialID?: string,
   isChecked: boolean,
   isDisabled?: boolean,
   onChange: (isChecked: boolean) => void,
@@ -18,6 +19,7 @@ type Props = {
 export default function Toggle({
   children,
   className = '',
+  dataTutorialID,
   isDisabled = false,
   isChecked,
   onChange,
@@ -40,6 +42,7 @@ export default function Toggle({
   let toggle = (
     <button
       className={`${defaultClassName} ${className}`}
+      data-tutorial-id={dataTutorialID}
       disabled={isDisabled}
       onClick={handleClick}
     >

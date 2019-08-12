@@ -89,6 +89,7 @@ export default function TabBar({
               disabled ? styles.TabDisabled : styles.Tab,
               !disabled && currentTab === id ? styles.TabCurrent : null
             )}
+            data-tutorial-id={`${id}Tab`}
             key={id}
             onKeyDown={handleKeyDown}
             onMouseDown={() => selectTab(id)}
